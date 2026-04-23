@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HighClass - Super App</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap');
     body { font-family: 'Prompt', sans-serif; background-color: #f3f4f6; margin: 0; overflow-x: hidden; }
@@ -128,17 +127,39 @@
       </div>
 
       <div class="border-t pt-4">
-        <h3 class="font-bold text-sm text-gray-700 mb-3 text-center">ช่องทางการชำระเงิน (สแกน QR Code)</h3>
-        <div class="flex justify-center mb-4">
-          <div id="qrcode" class="p-2 bg-white border-2 border-gray-200 rounded-xl"></div>
+        <h3 class="font-bold text-sm text-gray-700 mb-3 text-center">เลือกช่องทางการชำระเงิน</h3>
+        
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-3">
+            <div class="flex items-center justify-center gap-2 mb-3 font-bold text-blue-800">
+                <span>🏦</span> สแกนพร้อมเพย์ (ทุกธนาคาร)
+            </div>
+            <div class="flex justify-center mb-3">
+                <div id="qrcode" class="p-2 bg-white border-2 border-blue-100 rounded-xl shadow-sm"></div>
+            </div>
+            <div class="text-center">
+                <p class="text-xs text-blue-600 mb-1">หรือโอนเข้าเลขพร้อมเพย์</p>
+                <p class="text-sm font-black text-blue-800 tracking-wider" id="display-promptpay">08X-XXX-XXXX</p>
+                <p class="text-xs text-blue-600 mt-1">ชื่อบัญชี: ณัฐกรณ์</p>
+            </div>
         </div>
-        <p class="text-center text-xs text-gray-500 mb-4">* รองรับทั้งแอพธนาคาร (พร้อมเพย์) และ ทรูมันนี่วอลเล็ท</p>
+
+        <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-5">
+            <div class="flex items-center justify-center gap-2 mb-2 font-bold text-orange-800">
+                <span>🧡</span> โอนเข้า TrueMoney Wallet
+            </div>
+            <div class="text-center mt-2">
+                <p class="text-xs text-orange-600 mb-1">เบอร์วอเลท</p>
+                <p class="font-black text-xl text-orange-700 tracking-wider">00845833256</p>
+                <p class="text-xs text-orange-600 mt-1">ชื่อบัญชี: ณัฐกรณ์ จันทร์ศรี</p>
+            </div>
+        </div>
         
         <label class="block text-sm font-bold text-gray-700 mb-2">แนบสลิปโอนเงิน (จำเป็น)</label>
         <input type="file" id="co-slip" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800 mb-6">
         
         <button id="co-submitBtn" onclick="submitCheckout()" class="w-full bg-[#00B900] text-white font-bold py-4 rounded-xl hover:bg-[#009900] transition shadow-md text-lg">ยืนยันการชำระเงิน</button>
       </div>
+
     </div>
   </div>
 
@@ -600,12 +621,15 @@
         }
       }
 
-      document.getElementById('qrcode').innerHTML = "";
-      new QRCode(document.getElementById("qrcode"), {
-        text: "088xxxxxxx", // ⚠️ เปลี่ยนเป็นเบอร์พร้อมเพย์ฟิวตรงนี้นะครับ
-        width: 150,
-        height: 150
-      });
+      // ==========================================
+      // ⚠️ 1. ตั้งค่าเบอร์พร้อมเพย์ (สำหรับสร้าง QR)
+      // ==========================================
+      const myPromptPay = "1061504881"; // <--- เปลี่ยนเป็นเบอร์พร้อมเพย์ธนาคารของฟิวตรงนี้นะครับ
+      
+      document.getElementById('display-promptpay').innerText = myPromptPay;
+
+      const qrUrl = `https://promptpay.io/${myPromptPay}/${price}.png`;
+      document.getElementById('qrcode').innerHTML = `<img src="${qrUrl}" width="150" height="150" style="margin: auto; border-radius: 8px;">`;
 
       const modal = document.getElementById('checkoutModal');
       modal.classList.remove('hidden');
