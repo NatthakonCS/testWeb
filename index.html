@@ -104,9 +104,11 @@
     </div>
   </div>
 
-  <div id="checkoutModal" class="fixed inset-0 bg-black bg-opacity-70 z-[9999] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity overflow-y-auto">
+  <div id="checkoutModal" class="fixed inset-0 bg-black bg-opacity-70 z-[9999] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity overflow-y-auto" onclick="if(event.target === this) closeCheckoutModal()">
     <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full max-w-lg relative border border-gray-100 my-8">
-      <button onclick="closeCheckoutModal()" class="absolute top-4 right-5 text-3xl font-bold text-gray-400 hover:text-red-500 transition leading-none">×</button>
+      
+      <button onclick="closeCheckoutModal()" class="absolute top-4 right-5 text-4xl font-bold text-gray-400 hover:text-red-500 transition leading-none z-50">&times;</button>
+      
       <h2 class="text-2xl font-bold tracking-wide text-black mb-4 border-b pb-2">คำสั่งซื้อของคุณ</h2>
       
       <div class="flex gap-4 bg-gray-50 p-4 rounded-xl mb-4 border border-gray-100">
@@ -138,8 +140,8 @@
             </div>
             <div class="text-center">
                 <p class="text-xs text-blue-600 mb-1">หรือโอนเข้าเลขพร้อมเพย์</p>
-                <p class="text-sm font-black text-blue-800 tracking-wider" id="display-promptpay">1061504881</p>
-                <p class="text-xs text-blue-600 mt-1">ชื่อบัญชี: ณัฐกรณ์ จันทร์ศรี</p>
+                <p class="text-sm font-black text-blue-800 tracking-wider" id="display-promptpay">084-583-3256</p>
+                <p class="text-xs text-blue-600 mt-1">ชื่อบัญชี: ณัฐกรณ์</p>
             </div>
         </div>
 
@@ -149,15 +151,18 @@
             </div>
             <div class="text-center mt-2">
                 <p class="text-xs text-orange-600 mb-1">เบอร์วอเลท</p>
-                <p class="font-black text-xl text-orange-700 tracking-wider">0845833256</p>
-                <p class="text-xs text-orange-600 mt-1">ชื่อบัญชี: ณัฐกรณ์ จันทร์ศรี</p>
+                <p class="font-black text-xl text-orange-700 tracking-wider">084-583-3256</p>
+                <p class="text-xs text-orange-600 mt-1">ชื่อบัญชี: ณัฐกรณ์</p>
             </div>
         </div>
         
         <label class="block text-sm font-bold text-gray-700 mb-2">แนบสลิปโอนเงิน (จำเป็น)</label>
         <input type="file" id="co-slip" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800 mb-6">
         
-        <button id="co-submitBtn" onclick="submitCheckout()" class="w-full bg-[#00B900] text-white font-bold py-4 rounded-xl hover:bg-[#009900] transition shadow-md text-lg">ยืนยันการชำระเงิน</button>
+        <div class="flex gap-3">
+            <button onclick="closeCheckoutModal()" class="w-1/3 bg-gray-200 text-gray-700 font-bold py-4 rounded-xl hover:bg-gray-300 transition shadow-md text-base md:text-lg">ยกเลิก</button>
+            <button id="co-submitBtn" onclick="submitCheckout()" class="w-2/3 bg-[#00B900] text-white font-bold py-4 rounded-xl hover:bg-[#009900] transition shadow-md text-base md:text-lg">ยืนยันการชำระเงิน</button>
+        </div>
       </div>
 
     </div>
@@ -380,12 +385,13 @@
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
     const POINT_API_URL = "https://script.google.com/macros/s/AKfycbzBy1bRIJ0TdkwbsmLY_Y7cXRFYrMGqD98mXWqW0nCrURPV7g4AidxdpJ44nGPb-3Yk/exec"; 
     const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbzVNx8UdaJFuzdXq4SCPNHoDHWb33-37djx4UBaH2UxwXWNIlEEtRpS3RlgnnuPN7QI/exec";
     const TRACKING_API_URL = "https://script.google.com/macros/s/AKfycbw49xoUL87wdRfP4dDfPwsZ7Y2yKqT8Gjb5BhhMXxlMDk9Z3fLKe6oGqgy_lG_Z3020/exec";
     
-    // ⚠️ ลิงก์ API สำหรับ Checkout อย่าลืมไปเอาลิงก์จาก Google Apps Script ตัวใหม่มาใส่นะครับ
+    // อัปเดต API ตัวใหม่ของฟิว
     const CHECKOUT_API_URL = "https://script.google.com/macros/s/AKfycbx1Xf8EtNSX3o1ZB7ies4072AHWoZj8tlFRiG88pW4yRF9OQoQgJkq_Phz5zXXHCO6z3Q/exec";
 
     let currentUserPhone = ''; let currentProfilePic = '';
@@ -621,15 +627,15 @@
         }
       }
 
-      // ==========================================
-      // ⚠️ 1. ตั้งค่าเบอร์พร้อมเพย์ (สำหรับสร้าง QR)
-      // ==========================================
-      const myPromptPay = "1061504881"; // <--- เปลี่ยนเป็นเบอร์พร้อมเพย์ธนาคารของฟิวตรงนี้นะครับ
+      // อัปเดตเบอร์พร้อมเพย์
+      const myPromptPay = "0845833256"; 
       
-      document.getElementById('display-promptpay').innerText = myPromptPay;
-
       const qrUrl = `https://promptpay.io/${myPromptPay}/${price}.png`;
-      document.getElementById('qrcode').innerHTML = `<img src="${qrUrl}" width="150" height="150" style="margin: auto; border-radius: 8px;">`;
+      
+      const qrContainer = document.getElementById('qrcode');
+      if(qrContainer) {
+          qrContainer.innerHTML = `<img src="${qrUrl}" width="150" height="150" style="margin: auto; border-radius: 8px;">`;
+      }
 
       const modal = document.getElementById('checkoutModal');
       modal.classList.remove('hidden');
