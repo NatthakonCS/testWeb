@@ -76,11 +76,11 @@
         <p id="loginError" class="text-red-500 font-semibold text-sm mt-3 hidden"></p>
         <div class="mt-5 pt-4 border-t border-gray-100">
           <span class="text-gray-500 text-sm">ยังไม่มีบัญชี? </span>
-          <button onclick="switchForm('register')" class="text-black font-bold hover:underline">สมัครสมาชิกที่นี่</button>
+          <button onclick="switchForm('')" class="text-black font-bold hover:underline">สมัครสมาชิกที่นี่</button>
         </div>
       </div>
 
-      <div id="formRegister" class="hidden">
+      <div id="form" class="hidden">
         <p class="text-black font-bold mb-4 mt-1">สมัครสมาชิกใหม่</p>
         <div class="text-left mb-3">
           <label class="block text-xs font-bold text-gray-700 mb-1">ชื่อเรียก / ชื่อเล่น</label>
@@ -94,7 +94,7 @@
           <label class="block text-xs font-bold text-gray-700 mb-1">ตั้งรหัส PIN 4 หลัก</label>
           <input type="password" id="regPin" maxlength="4" inputmode="numeric" class="w-full p-3 border-2 border-gray-200 rounded-xl font-bold text-2xl tracking-widest text-center focus:border-black outline-none transition" placeholder="••••">
         </div>
-        <button id="regBtn" class="w-full bg-green-500 text-white font-bold py-3 rounded-xl hover:bg-green-600 transition shadow-md text-lg" onclick="registerSystem()">ยืนยันการสมัคร</button>
+        <button id="regBtn" class="w-full bg-green-500 text-white font-bold py-3 rounded-xl hover:bg-green-600 transition shadow-md text-lg" onclick="System()">ยืนยันการสมัคร</button>
         <p id="regError" class="text-red-500 font-semibold text-sm mt-3 hidden"></p>
         <div class="mt-4 pt-4 border-t border-gray-100">
           <span class="text-gray-500 text-sm">มีบัญชีอยู่แล้ว? </span>
@@ -333,7 +333,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
-    const POINT_API_URL = "https://script.google.com/macros/s/AKfycbxrbuk1JejgKtVTr0bHzQNY-0A0Ri0HKnNJQHus72h5G6UC6CTsoO70lVtuUZyqR16d/exec"; 
+    const POINT_API_URL = "https://script.google.com/macros/s/AKfycbwp_iMNxd7BvTv0CAoitnvV3DVmliWkGiQhxRoz3nZXI5A894X21hb_rXtXLsvCI9Wq/exec"; 
     const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbxZT8ysjcJTWSb3Ny3YDHenggGfU5ysUWdj_NNsQEm-vKVT6KqEEygZemf7uEZydVk/exec";
     const TRACKING_API_URL = "https://script.google.com/macros/s/AKfycbw49xoUL87wdRfP4dDfPwsZ7Y2yKqT8Gjb5BhhMXxlMDk9Z3fLKe6oGqgy_lG_Z3020/exec";
     const CHECKOUT_API_URL = "https://script.google.com/macros/s/AKfycbyT00b5c6ng25Br5IEHe2WtCn-BKMwJry_sMU4oMJwVpFfaS_Fg9m2tQcGDU2GgdKI83Q/exec";
@@ -376,6 +376,43 @@
           if(d.rank.color === '#C0C0C0' || d.rank.color === '#FFD700') document.getElementById('userRank').style.color = '#000'; else document.getElementById('userRank').style.color = '#fff';
         }
       } catch(e){}
+    }
+    async function registerSystem() {
+      const name = document.getElementById('regName').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const pin = document.getElementById('regPin').value.trim();
+
+      // เช็คความเรียบร้อยก่อนส่ง
+      if (!name || !phone || !pin) return alert("⚠️ กรุณากรอกข้อมูลให้ครบทุกช่องครับ");
+      if (phone.length < 10) return alert("⚠️ กรุณากรอกเบอร์โทรให้ครบ 10 หลักครับ");
+      if (pin.length < 4) return alert("⚠️ กรุณาตั้งรหัส PIN ให้ครบ 4 หลักครับ");
+
+      const btn = document.getElementById('regBtn');
+      const errorText = document.getElementById('regError');
+      
+      btn.innerText = 'กำลังลงทะเบียน...';
+      btn.disabled = true;
+      errorText.classList.add('hidden');
+
+      try {
+        // ส่งข้อมูลไปที่ highclassSystem (GAS)
+        const response = await fetch(`${POINT_API_URL}?action=register&phone=${phone}&name=${encodeURIComponent(name)}&pin=${pin}`);
+        const data = await response.json();
+
+        if (data.success) {
+          alert("🎉 " + data.message);
+          switchForm('login'); // สมัครเสร็จให้ดีดไปหน้า Login ทันที
+          document.getElementById('loginPhone').value = phone;
+          document.getElementById('loginPin').value = pin;
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อระบบสมัครสมาชิก");
+      } finally {
+        btn.innerText = 'ยืนยันการสมัคร';
+        btn.disabled = false;
+      }
     }
 
     function logoutSystem() { localStorage.clear(); window.location.reload(); }
