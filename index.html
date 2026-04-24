@@ -76,11 +76,11 @@
         <p id="loginError" class="text-red-500 font-semibold text-sm mt-3 hidden"></p>
         <div class="mt-5 pt-4 border-t border-gray-100">
           <span class="text-gray-500 text-sm">ยังไม่มีบัญชี? </span>
-          <button onclick="switchForm('')" class="text-black font-bold hover:underline">สมัครสมาชิกที่นี่</button>
+          <button onclick="switchForm('register')" class="text-black font-bold hover:underline">สมัครสมาชิกที่นี่</button>
         </div>
       </div>
 
-      <div id="form" class="hidden">
+      <div id="formRegister" class="hidden">
         <p class="text-black font-bold mb-4 mt-1">สมัครสมาชิกใหม่</p>
         <div class="text-left mb-3">
           <label class="block text-xs font-bold text-gray-700 mb-1">ชื่อเรียก / ชื่อเล่น</label>
@@ -94,7 +94,7 @@
           <label class="block text-xs font-bold text-gray-700 mb-1">ตั้งรหัส PIN 4 หลัก</label>
           <input type="password" id="regPin" maxlength="4" inputmode="numeric" class="w-full p-3 border-2 border-gray-200 rounded-xl font-bold text-2xl tracking-widest text-center focus:border-black outline-none transition" placeholder="••••">
         </div>
-        <button id="regBtn" class="w-full bg-green-500 text-white font-bold py-3 rounded-xl hover:bg-green-600 transition shadow-md text-lg" onclick="System()">ยืนยันการสมัคร</button>
+        <button id="regBtn" class="w-full bg-green-500 text-white font-bold py-3 rounded-xl hover:bg-green-600 transition shadow-md text-lg" onclick="registerSystem()">ยืนยันการสมัคร</button>
         <p id="regError" class="text-red-500 font-semibold text-sm mt-3 hidden"></p>
         <div class="mt-4 pt-4 border-t border-gray-100">
           <span class="text-gray-500 text-sm">มีบัญชีอยู่แล้ว? </span>
@@ -301,6 +301,7 @@
           </div>
 
         </div>
+      </div>
 
       <div id="activitiesSection" class="section">
         <h2 class="text-2xl font-bold text-black mb-1">กิจกรรมพิเศษ</h2>
@@ -349,29 +350,46 @@
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
     function navTo(id) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); if(document.getElementById('sidebar').classList.contains('active')) toggleSidebar(); }
     
-    // 🚨 เปลี่ยนมาใช้ .active ในการเปิดป๊อปอัปให้ชัวร์ 100%
     function openLoginModal() { document.getElementById('loginModal').classList.add('active'); }
     function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
     function switchForm(f) { if(f==='register'){document.getElementById('formLogin').classList.add('hidden'); document.getElementById('formRegister').classList.remove('hidden');}else{document.getElementById('formRegister').classList.add('hidden'); document.getElementById('formLogin').classList.remove('hidden');} }
-   
+    
     async function registerSystem() {
-      const name = document.getElementById('regName').value.trim(); const phone = document.getElementById('regPhone').value.trim(); const pin = document.getElementById('regPin').value.trim();
-      const errorText = document.getElementById('regError'); const btn = document.getElementById('regBtn');
+      const name = document.getElementById('regName').value.trim(); 
+      const phone = document.getElementById('regPhone').value.trim(); 
+      const pin = document.getElementById('regPin').value.trim();
+      const errorText = document.getElementById('regError'); 
+      const btn = document.getElementById('regBtn');
+      
       if(!name || !phone || !pin) { errorText.innerText = 'กรุณากรอกข้อมูลให้ครบถ้วนครับ'; errorText.classList.remove('hidden'); return; }
+      if(phone.length < 10) { errorText.innerText = 'เบอร์โทรต้องมี 10 หลักครับ'; errorText.classList.remove('hidden'); return; }
       if(pin.length !== 4) { errorText.innerText = 'รหัส PIN ต้องเป็นตัวเลข 4 หลักครับ'; errorText.classList.remove('hidden'); return; }
 
       btn.innerText = 'กำลังสมัคร...'; btn.disabled = true; errorText.classList.add('hidden');
+      
       try {
         const response = await fetch(`${POINT_API_URL}?action=register&phone=${phone}&name=${encodeURIComponent(name)}&pin=${pin}`);
         const data = await response.json();
+        
         if (data.success) {
           alert('สมัครสมาชิกสำเร็จ!');
-          document.getElementById('loginPhone').value = phone; document.getElementById('loginPin').value = pin;
-          loginSystem();
-        } else { errorText.innerText = data.message; errorText.classList.remove('hidden'); }
-      } catch (error) { errorText.innerText = 'เชื่อมต่อไม่สำเร็จ'; errorText.classList.remove('hidden'); } 
-      finally { btn.innerText = 'ยืนยันการสมัคร'; btn.disabled = false; }
+          document.getElementById('loginPhone').value = phone; 
+          document.getElementById('loginPin').value = pin;
+          switchForm('login'); 
+        } else { 
+          errorText.innerText = data.message; 
+          errorText.classList.remove('hidden'); 
+        }
+      } catch (error) { 
+        errorText.innerText = 'เชื่อมต่อไม่สำเร็จ'; 
+        errorText.classList.remove('hidden'); 
+      } 
+      finally { 
+        btn.innerText = 'ยืนยันการสมัคร'; 
+        btn.disabled = false; 
+      }
     }
+
     async function loginSystem(auto = false) {
       const p = document.getElementById('loginPhone').value || currentUserPhone;
       const pin = document.getElementById('loginPin').value;
