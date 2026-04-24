@@ -60,7 +60,7 @@
       <button onclick="closeLoginModal()" class="absolute top-4 right-5 text-3xl font-bold text-gray-400 hover:text-red-500 transition leading-none">×</button>
       <h2 class="text-3xl font-bold tracking-widest uppercase text-black mt-2">HighClass</h2>
       
-     <div id="formLogin">
+      <div id="formLogin">
         <p class="text-gray-500 font-medium mb-6 mt-1">เข้าสู่ระบบเพื่อทำการสั่งซื้อ</p>
         <div class="text-left mb-4">
           <label class="block text-sm font-bold text-gray-700 mb-2">เบอร์โทรศัพท์มือถือ</label>
@@ -102,7 +102,39 @@
     </div>
   </div>
 
-  <div id="checkoutModal" class="fixed inset-0 bg-black bg-opacity-70 z-[9999] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity overflow-y-auto" onclick="if(event.target === this) closeCheckoutModal()">
+  <div id="productDetailModal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[9940] items-center justify-center p-4 backdrop-blur-sm overflow-y-auto" onclick="if(event.target === this) closeProductDetail()">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg relative border border-gray-100 my-8 overflow-hidden">
+      <button onclick="closeProductDetail()" class="absolute top-4 right-5 text-4xl font-bold text-gray-400 hover:text-red-500 transition leading-none z-50">×</button>
+      
+      <img id="pd-img" src="" class="w-full h-80 object-cover border-b border-gray-100">
+      
+      <div class="p-6 md:p-8 text-left">
+        <h2 id="pd-name" class="text-2xl font-bold text-black mb-1">ชื่อสินค้า</h2>
+        <p id="pd-price" class="text-2xl font-black text-black mb-4">฿0</p>
+        
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                <p class="text-xs text-gray-500 font-bold uppercase">รอบอก</p>
+                <p id="pd-chest" class="text-lg font-bold text-black">- นิ้ว</p>
+            </div>
+            <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                <p class="text-xs text-gray-500 font-bold uppercase">ความยาว</p>
+                <p id="pd-length" class="text-lg font-bold text-black">- นิ้ว</p>
+            </div>
+            <div class="col-span-2 bg-red-50 p-3 rounded-2xl border border-red-100">
+                <p class="text-xs text-red-500 font-bold uppercase">ตำหนิ / สภาพ</p>
+                <p id="pd-defect" class="text-sm font-medium text-red-700">-</p>
+            </div>
+        </div>
+
+        <button id="pd-buyBtn" class="w-full bg-black text-white font-bold py-4 rounded-2xl hover:bg-gray-800 transition shadow-lg text-lg flex items-center justify-center gap-2">
+            🛍️ กดสั่งซื้อสินค้าตัวนี้
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="checkoutModal" class="fixed inset-0 bg-black bg-opacity-70 z-[9950] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity overflow-y-auto" onclick="if(event.target === this) closeCheckoutModal()">
     <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full max-w-lg relative border border-gray-100 my-8">
       
       <button onclick="closeCheckoutModal()" class="absolute top-4 right-5 text-4xl font-bold text-gray-400 hover:text-red-500 transition leading-none z-50">×</button>
@@ -110,7 +142,7 @@
       <h2 class="text-2xl font-bold tracking-wide text-black mb-4 border-b pb-2">คำสั่งซื้อของคุณ</h2>
       
       <div class="flex gap-4 bg-gray-50 p-4 rounded-xl mb-4 border border-gray-100">
-        <img id="co-img" src="" class="w-20 h-20 object-cover rounded-lg shadow-sm">
+        <img id="co-checkout-img" src="" class="w-20 h-20 object-cover rounded-lg shadow-sm">
         <div class="flex-grow flex flex-col justify-center">
           <h3 id="co-name" class="font-bold text-gray-800 text-sm md:text-base">ชื่อสินค้า</h3>
           <p id="co-size" class="text-gray-500 text-xs mt-1">Size: -</p>
@@ -121,7 +153,7 @@
       <div class="space-y-3 mb-6">
         <h3 class="font-bold text-sm text-gray-700">ข้อมูลจัดส่ง</h3>
         <input type="text" id="co-cust-name" class="w-full p-3 border-2 border-gray-200 rounded-xl font-medium focus:border-black focus:outline-none transition text-sm" placeholder="ชื่อ-นามสกุล">
-        <input type="text" id="co-cust-phone" class="w-full p-3 border-2 border-gray-200 rounded-xl font-medium focus:border-black focus:outline-none transition text-sm" placeholder="เบอร์โทรศัพท์" disabled>
+        <input type="text" id="co-cust-phone" class="w-full p-3 border-2 border-gray-200 rounded-xl font-medium focus:border-black focus:outline-none transition text-sm bg-gray-100" placeholder="เบอร์โทรศัพท์" disabled>
         <textarea id="co-cust-address" rows="2" class="w-full p-3 border-2 border-gray-200 rounded-xl font-medium focus:border-black focus:outline-none transition text-sm" placeholder="ที่อยู่จัดส่งแบบละเอียด"></textarea>
         <input type="text" id="co-cust-zip" class="w-full p-3 border-2 border-gray-200 rounded-xl font-medium focus:border-black focus:outline-none transition text-sm" placeholder="รหัสไปรษณีย์">
       </div>
@@ -180,7 +212,7 @@
         <li onclick="navTo('activitiesSection')">🎉 กิจกรรมพิเศษ</li>
         
         <li id="menuProfile" class="hidden" onclick="navTo('profileSection')">👤 โปรไฟล์สมาชิก</li>
-        <li id="menuMyOrders" class="hidden" onclick="navTo('myOrdersSection'); fetchMyOrders();">🎒 สถานะการสั่งซื้อของฉัน</li>
+        <li id="menuMyOrders" class="hidden" onclick="navTo('myOrdersSection'); fetchMyOrders();">🛍️ สถานะการสั่งซื้อของฉัน</li>
         <li id="menuRewards" class="hidden" onclick="navTo('rewardsSection')">🎁 แลกของรางวัล</li>
         <li id="menuLogout" class="logout hidden" onclick="logoutSystem()">🚪 ออกจากระบบ</li>
       </ul>
@@ -224,6 +256,12 @@
             </div>
             <div id="trackResult" class="mt-8 hidden flex-col gap-3"></div>
          </div>
+         <div id="trackAdminBox" class="hidden bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 max-w-4xl mx-auto">
+            <div id="trackLoginForm" class="max-w-sm mx-auto text-center py-4">
+              <h3 class="font-bold text-2xl text-black mb-2">Admin</h3>
+              <input type="password" id="trackAdminPass" class="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-black focus:outline-none mb-4" placeholder="รหัสผ่าน Admin">
+              <button onclick="loginTrackAdmin()" class="w-full bg-black text-white font-bold py-4 rounded-2xl hover:bg-gray-800 transition shadow-md text-lg">เข้าสู่ระบบ</button>
+            </div>
             <div id="trackManageForm" class="hidden">
               <div class="flex justify-between items-center mb-6"><h3 class="font-bold text-xl">จัดการพัสดุ</h3><button onclick="logoutTrackAdmin()" class="text-red-500 font-bold hover:underline text-sm">ออกจากระบบ</button></div>
               <div class="flex flex-col gap-3 max-w-md mx-auto">
@@ -252,10 +290,9 @@
         <h3 class="text-xl font-bold text-black mb-4">ระดับสมาชิก (Rank) และสิทธิพิเศษ</h3>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          
           <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-3 hover:shadow-md transition">
             <div class="flex items-center gap-4 border-b border-gray-50 pb-3">
-              <img src="rank1.png" class="w-16 h-16 rounded-full object-cover shadow-sm border-2 border-gray-100 flex-shrink-0 bg-white" alt="Rank 1">
+              <img src="rank1.png" class="w-16 h-16 rounded-full object-cover shadow-sm border-2 border-gray-100 flex-shrink-0 bg-white" alt="Rank 1" onerror="this.src='https://cdn-icons-png.flaticon.com/512/847/847969.png'">
               <div><div class="font-bold text-gray-800 text-lg">ผู้ผ่านทาง</div><div class="text-sm font-medium text-gray-500">สะสม 0 - 1 Point</div></div>
             </div>
             <ul class="text-sm text-gray-600 space-y-1.5 pl-1">
@@ -266,7 +303,7 @@
 
           <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-3 hover:shadow-md transition">
             <div class="flex items-center gap-4 border-b border-gray-50 pb-3">
-              <img src="rank2.png" class="w-16 h-16 rounded-full object-cover shadow-sm border-2 border-gray-100 flex-shrink-0 bg-white" alt="Rank 2">
+              <img src="rank2.png" class="w-16 h-16 rounded-full object-cover shadow-sm border-2 border-gray-100 flex-shrink-0 bg-white" alt="Rank 2" onerror="this.src='https://cdn-icons-png.flaticon.com/512/847/847969.png'">
               <div><div class="font-bold text-gray-800 text-lg">เสื้อผ้าร้านนี้แอบเลิศ</div><div class="text-sm font-medium text-gray-500">สะสม 2 - 4 Point</div></div>
             </div>
             <ul class="text-sm text-gray-600 space-y-1.5 pl-1">
@@ -277,7 +314,7 @@
 
           <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-3 hover:shadow-md transition">
             <div class="flex items-center gap-4 border-b border-gray-50 pb-3">
-              <img src="rank3.png" class="w-16 h-16 rounded-full object-cover shadow-sm border-2 border-gray-100 flex-shrink-0 bg-white" alt="Rank 3">
+              <img src="rank3.png" class="w-16 h-16 rounded-full object-cover shadow-sm border-2 border-gray-100 flex-shrink-0 bg-white" alt="Rank 3" onerror="this.src='https://cdn-icons-png.flaticon.com/512/847/847969.png'">
               <div><div class="font-bold text-gray-800 text-lg">ลูกค้าประจำ</div><div class="text-sm font-medium text-gray-500">สะสม 5 - 8 Point</div></div>
             </div>
             <ul class="text-sm text-gray-600 space-y-1.5 pl-1">
@@ -288,7 +325,7 @@
 
           <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-3 hover:shadow-md transition">
             <div class="flex items-center gap-4 border-b border-gray-50 pb-3">
-              <img src="rank4.png" class="w-16 h-16 rounded-full object-cover shadow-sm border-2 border-gray-100 flex-shrink-0 bg-white" alt="Rank 4">
+              <img src="rank4.png" class="w-16 h-16 rounded-full object-cover shadow-sm border-2 border-gray-100 flex-shrink-0 bg-white" alt="Rank 4" onerror="this.src='https://cdn-icons-png.flaticon.com/512/847/847969.png'">
               <div><div class="font-bold text-gray-800 text-lg">ผู้สนับสนุนรายใหญ่</div><div class="text-sm font-medium text-gray-500">สะสม 9 - 10+ Point</div></div>
             </div>
             <ul class="text-sm text-gray-600 space-y-1.5 pl-1">
@@ -296,7 +333,6 @@
               <li class="flex items-start gap-2"><span class="text-[#00B900]">✔</span> บริการดูแลระดับ VIP ลูกค้าคนสำคัญ</li>
             </ul>
           </div>
-
         </div>
       </div>
 
@@ -333,7 +369,7 @@
     const POINT_API_URL = "https://script.google.com/macros/s/AKfycbzBy1bRIJ0TdkwbsmLY_Y7cXRFYrMGqD98mXWqW0nCrURPV7g4AidxdpJ44nGPb-3Yk/exec"; 
     const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbxZT8ysjcJTWSb3Ny3YDHenggGfU5ysUWdj_NNsQEm-vKVT6KqEEygZemf7uEZydVk/exec";
     const TRACKING_API_URL = "https://script.google.com/macros/s/AKfycbw49xoUL87wdRfP4dDfPwsZ7Y2yKqT8Gjb5BhhMXxlMDk9Z3fLKe6oGqgy_lG_Z3020/exec";
-    const CHECKOUT_API_URL = "https://script.google.com/macros/s/AKfycbyT00b5c6ng25Br5IEHe2WtCn-BKMwJry_sMU4oMJwVpFfaS_Fg9m2tQcGDU2GgdKI83Q/exec";
+    const CHECKOUT_API_URL = "https://script.google.com/macros/s/AKfycbzR6Qd77nCBDd9mPndTdzc835ln1Cxt0bS80DlOhwatDqf8Iy3wAW1UbsNBCX7BtcqIuw/exec";
 
     let currentUserPhone = ''; 
 
@@ -406,7 +442,7 @@
 
     async function registerSystem() { /* โค้ดสมัครสมาชิกเหมือนเดิม */ }
 
-    // ================= ระบบสินค้า (เพิ่มฟีเจอร์ SOLD) =================
+    // ================= ระบบสินค้า (เพิ่ม Detail Modal) =================
     let allProducts = []; 
     async function fetchProducts() {
       try {
@@ -425,9 +461,12 @@
         let imageUrl = item.image ? item.image.trim() : '';
         const driveMatch = imageUrl.match(/[-\w]{25,}/);
         if (imageUrl.includes('drive.google.com') && driveMatch) imageUrl = `https://lh3.googleusercontent.com/d/$${driveMatch[0]}`;
-        
-        // เช็คว่าถ้าสถานะในชีต Products เป็น SOLD ให้ขึ้นป้ายเลย
         const isSold = item.Status && item.Status.trim().toUpperCase() === "SOLD";
+        
+        // ข้อมูลเพิ่มเติมสำหรับแสดงในหน้ารายละเอียด
+        const chest = item.Chest || "-";
+        const length = item.Length || "-";
+        const defect = item.Defect || "ไม่มีตำหนิ สภาพดี";
         
         return `
           <div class="bg-white rounded-2xl shadow-sm flex flex-col border border-gray-100 overflow-hidden group relative">
@@ -439,14 +478,41 @@
               <h3 class="font-bold text-gray-800 text-sm md:text-base">${item.name}</h3>
               <p class="text-gray-500 text-xs mt-1 font-medium">Size: ${item.size}</p>
               <p class="text-black font-black text-lg mt-2 mb-4">฿${item.price}</p>
-              <button onclick="openCheckoutModal('${item.name}', '${item.size}', '${item.price}', '${imageUrl}')" 
+              
+              <button onclick="openProductDetail('${item.name}', '${item.size}', '${item.price}', '${imageUrl}', '${chest}', '${length}', '${defect}')" 
                       class="mt-auto block w-full text-center py-2 rounded-lg font-bold text-sm shadow-md ${isSold ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-black hover:bg-gray-800 text-white transition'}"
                       ${isSold ? 'disabled' : ''}>
-                ${isSold ? 'สินค้าหมด' : 'สั่งซื้อและชำระเงิน'}
+                ${isSold ? 'สินค้าหมด' : 'ดูรายละเอียด / สั่งซื้อ'}
               </button>
             </div>
           </div>`;
       }).join('');
+    }
+
+    // ฟังก์ชันสำหรับเปิด/ปิดหน้าต่างรายละเอียดสินค้า
+    function openProductDetail(name, size, price, image, chest, length, defect) {
+      document.getElementById('pd-name').innerText = name;
+      document.getElementById('pd-price').innerText = "฿" + price;
+      document.getElementById('pd-img').src = image;
+      document.getElementById('pd-chest').innerText = chest;
+      document.getElementById('pd-length').innerText = length;
+      document.getElementById('pd-defect').innerText = defect;
+
+      // ตั้งค่าให้ปุ่มกดสั่งซื้อ ไปเรียกหน้า Checkout อีกที
+      document.getElementById('pd-buyBtn').onclick = function() {
+          closeProductDetail();
+          openCheckoutModal(name, size, price, image);
+      };
+
+      const modal = document.getElementById('productDetailModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeProductDetail() {
+      const modal = document.getElementById('productDetailModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
     }
 
     // ================= ระบบ Checkout =================
@@ -463,7 +529,7 @@
       document.getElementById('co-name').innerText = name;
       document.getElementById('co-size').innerText = "Size: " + size;
       document.getElementById('co-price').innerText = "฿" + price;
-      document.getElementById('co-img').src = image;
+      document.getElementById('co-checkout-img').src = image;
 
       document.getElementById('co-cust-phone').value = currentUserPhone;
       if(document.getElementById('userNameDisplay')) document.getElementById('co-cust-name').value = document.getElementById('userNameDisplay').innerText;
@@ -523,7 +589,7 @@
       finally { btn.innerText = "ยืนยันการชำระเงิน"; btn.disabled = false; }
     }
 
-    // ================= ระบบดูสถานะออเดอร์ (เมนูใหม่) =================
+    // ================= ระบบดูสถานะออเดอร์ =================
     async function fetchMyOrders() {
       const list = document.getElementById('myOrdersList');
       list.innerHTML = '<div class="text-center py-10 text-gray-400 font-medium">กำลังโหลดข้อมูล...</div>';
@@ -542,7 +608,6 @@
           }
           
           list.innerHTML = res.data.map(order => {
-             // จัดการสีวงกลมสถานะ
              let statusUI = '';
              let rawStatus = order.status ? order.status.trim() : "";
              
@@ -572,6 +637,106 @@
       } catch (error) {
         list.innerHTML = '<div class="text-center py-10 text-red-500 font-bold">เกิดข้อผิดพลาดในการดึงข้อมูลออเดอร์</div>';
       }
+    }
+
+    // ================= ระบบ Tracking แอดมิน (ของเดิม) =================
+    function toggleTrackMode() {
+      const custBox = document.getElementById('trackCustomerBox'); const adminBox = document.getElementById('trackAdminBox'); const btn = document.getElementById('modeTrackBtn');
+      if(custBox.classList.contains('hidden')) { custBox.classList.remove('hidden'); adminBox.classList.add('hidden'); btn.innerText = 'Admin Login'; btn.classList.replace('bg-black', 'bg-gray-200'); btn.classList.replace('text-white', 'text-gray-700'); } 
+      else { custBox.classList.add('hidden'); adminBox.classList.remove('hidden'); btn.innerText = 'กลับไปหน้าค้นหา'; btn.classList.replace('bg-gray-200', 'bg-black'); btn.classList.replace('text-gray-700', 'text-white'); }
+    }
+
+    async function searchParcel() {
+      const input = document.getElementById('trackInput').value.trim();
+      const resultDiv = document.getElementById('trackResult');
+      const btn = document.getElementById('trackBtn');
+      if (!input) return alert('กรุณาใส่ชื่อหรือเบอร์โทรเพื่อค้นหาครับ');
+      
+      btn.innerText = 'กำลังค้นหา...'; btn.disabled = true;
+      resultDiv.classList.remove('hidden');
+      resultDiv.innerHTML = '<div class="text-center py-6 text-gray-500 font-medium animate-pulse">กำลังค้นหาข้อมูลพัสดุ...</div>';
+      
+      try {
+        const response = await fetch(`${TRACKING_API_URL}?action=search&name=${encodeURIComponent(input)}`);
+        const rawText = await response.text(); 
+        const data = JSON.parse(rawText);
+        
+        if (data.status === 'success' && data.data.length > 0) {
+          resultDiv.innerHTML = data.data.map(item => `
+            <div class="bg-gray-50 p-6 rounded-2xl border border-gray-200 text-left relative overflow-hidden flex flex-col gap-4">
+              <div class="flex justify-between items-start">
+                <div>
+                  <div class="flex items-center gap-3 mb-1">
+                    <span class="font-bold text-black text-xl">${item.name}</span>
+                    <span class="text-xs px-3 py-1 bg-green-100 text-green-700 rounded-full font-bold shadow-sm">จัดส่งแล้ว</span>
+                  </div>
+                  <div class="text-sm text-gray-500">สินค้า: <span class="font-bold text-gray-800">${item.product}</span></div>
+                </div>
+              </div>
+              <div class="bg-white p-4 rounded-xl border border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-2">
+                <div>
+                  <div class="text-xs text-gray-500 mb-1">เลขพัสดุ</div>
+                  <div class="font-black text-black text-xl tracking-wider">${item.tracking}</div>
+                </div>
+                <button onclick="openTimelinePopup('${item.tracking}')" class="bg-black hover:bg-gray-800 text-white px-5 py-3 rounded-xl text-sm font-bold transition shadow-sm border border-black flex items-center justify-center gap-2 w-full sm:w-auto">
+                  🚀 เช็คสถานะพัสดุ
+                </button>
+              </div>
+              <div class="text-center"><span class="text-[10px] text-gray-400 uppercase tracking-widest">Update: ${item.date}</span></div>
+            </div>
+          `).join('');
+        } else {
+          resultDiv.innerHTML = '<div class="text-center py-6 bg-red-50 text-red-500 rounded-2xl border border-red-100 font-bold">❌ ไม่พบข้อมูลพัสดุ</div>';
+        }
+      } catch (error) { 
+        resultDiv.innerHTML = '<div class="text-center py-4 text-red-500 font-bold">เกิดข้อผิดพลาดในการดึงข้อมูล</div>'; 
+      }
+      btn.innerText = 'ค้นหา'; btn.disabled = false;
+    }
+
+    function openTimelinePopup(trackingNumber) {
+        let url = ''; let tracking = trackingNumber.trim().toUpperCase(); 
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        const isInApp = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1) || (ua.indexOf("Line") > -1);
+        const thaiPostRegex = /^[A-Z]{2}\d{9}[A-Z]{2}$/;
+
+        if (thaiPostRegex.test(tracking)) {
+            const el = document.createElement('textarea'); el.value = tracking; document.body.appendChild(el); el.select();
+            try { document.execCommand('copy'); alert('คัดลอกเลขพัสดุ: ' + tracking + ' เรียบร้อย! 📦\nระบบกำลังพาไปเว็บไปรษณีย์ไทย ให้คุณกด "วาง" (Paste) ในช่องค้นหาได้เลยครับ'); } 
+            catch (e) { alert('กรุณาคัดลอกเลขพัสดุนี้: ' + tracking + ' เพื่อไปวางในเว็บไปรษณีย์ไทยครับ'); }
+            document.body.removeChild(el); url = 'https://track.thailandpost.co.th/';
+            setTimeout(() => { if (isInApp) { window.location.href = url; } else { window.open(url, '_blank'); } }, 1000);
+            return; 
+        }
+
+        url = 'https://www.flashexpress.co.th/tracking/?se=' + tracking;
+        if (isInApp) { window.location.href = url; } 
+        else { const width = 420; const height = 700; const left = (window.screen.width - width) / 2; const top = (window.screen.height - height) / 2; window.open(url, 'TrackingTimeline', `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`); }
+    }
+
+    function loginTrackAdmin() {
+      const pass = document.getElementById('trackAdminPass').value;
+      fetch(`${TRACKING_API_URL}?action=login&pass=${pass}`).then(res => res.text()).then(text => {
+          const data = JSON.parse(text);
+          if(data.status == 'success') {
+              document.getElementById('trackLoginForm').classList.add('hidden'); document.getElementById('trackManageForm').classList.remove('hidden');
+          } else { alert('รหัสผ่านแอดมินไม่ถูกต้อง'); }
+      });
+    }
+
+    function logoutTrackAdmin() {
+      document.getElementById('trackAdminPass').value = ''; document.getElementById('trackManageForm').classList.add('hidden'); document.getElementById('trackLoginForm').classList.remove('hidden');
+    }
+
+    function addData() {
+        let n = document.getElementById('addName').value; let t = document.getElementById('addTrack').value; let p = document.getElementById('addProd').value; let pass = document.getElementById('trackAdminPass').value;
+        if(!n || !t) return alert('กรุณากรอกชื่อและเลขพัสดุ');
+        
+        fetch(`${TRACKING_API_URL}?action=add&name=${n}&track=${t}&prod=${p}&pass=${pass}`).then(res => res.text()).then(text => {
+           const data = JSON.parse(text);
+           alert(data.msg);
+           if(data.status === 'success'){ document.getElementById('addName').value = ""; document.getElementById('addTrack').value = ""; document.getElementById('addProd').value = ""; }
+        });
     }
   </script>
 </body>
