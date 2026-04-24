@@ -192,13 +192,13 @@
       <div id="stockSection" class="section active">
         <h2 class="text-2xl font-bold text-black mb-4">สินค้าพร้อมส่ง</h2>
         <div class="flex gap-2 mb-6 overflow-x-auto pb-2 hide-scroll">
-          <button onclick="filterStock('ทั้งหมด', this)" class="category-chip active">ทั้งหมด</button>
-          <button onclick="filterStock('เสื้อคลุม', this)" class="category-chip inactive">เสื้อคลุม</button>
-          <button onclick="filterStock('เสื้อ T-shirt', this)" class="category-chip inactive">เสื้อ T-shirt</button>
-          <button onclick="filterStock('โปโล', this)" class="category-chip inactive">โปโล</button>
-          <button onclick="filterStock('เสื้อสาวๆ', this)" class="category-chip inactive">เสื้อสาวๆ</button>
-          <button onclick="filterStock('หมวก', this)" class="category-chip inactive">หมวก</button>
-          <button onclick="filterStock('กางเกง', this)" class="category-chip inactive">กางเกง</button>
+          <button onclick="Stock('ทั้งหมด', this)" class="category-chip active">ทั้งหมด</button>
+          <button onclick="Stock('เสื้อคลุม', this)" class="category-chip inactive">เสื้อคลุม</button>
+          <button onclick="Stock('เสื้อ T-shirt', this)" class="category-chip inactive">เสื้อ T-shirt</button>
+          <button onclick="Stock('โปโล', this)" class="category-chip inactive">โปโล</button>
+          <button onclick="Stock('เสื้อสาวๆ', this)" class="category-chip inactive">เสื้อสาวๆ</button>
+          <button onclick="Stock('หมวก', this)" class="category-chip inactive">หมวก</button>
+          <button onclick="Stock('กางเกง', this)" class="category-chip inactive">กางเกง</button>
         </div>
         <div id="stock-loading" class="text-center py-10 text-gray-400">กำลังโหลดรายการสินค้า...</div>
         <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
@@ -443,21 +443,29 @@
     function filterStock(cat, btn) {
       if(btn) { document.querySelectorAll('.category-chip').forEach(el => { el.classList.remove('active'); el.classList.add('inactive'); }); btn.classList.remove('inactive'); btn.classList.add('active'); }
       const grid = document.getElementById('product-grid');
-      const filtered = cat === 'ทั้งหมด' ? allProducts : allProducts.filter(i => i.category === cat);
+      
+      // ดักจับ Category ให้ครอบคลุมตัวพิมพ์เล็ก/ใหญ่
+      const filtered = cat === 'ทั้งหมด' ? allProducts : allProducts.filter(i => (i.category || i.Category || "").trim() === cat);
+      
       grid.innerHTML = filtered.map(item => {
-        // 🚨 แก้บั๊กป้าย SOLD: ดึงค่า status ให้ครอบคลุมทั้งตัวพิมพ์เล็ก-พิมพ์ใหญ่
         const itemStatus = (item.Status || item.status || "").trim().toUpperCase();
         const isSold = itemStatus === "SOLD";
+        
+        // 🚨 ดึง URL รูปตรงๆ จาก API เลย (ดักตัวพิมพ์เล็ก/ใหญ่ของชื่อคอลัมน์) โดยไม่ต้องแปลงลิงก์ซ้ำ!
+        const finalImg = (item.image || item.Image || item.IMAGE || "").trim();
+        const itemName = item.name || item.Name || "ไม่มีชื่อสินค้า";
+        const itemSize = item.size || item.Size || "-";
+        const itemPrice = item.price || item.Price || 0;
         
         return `
           <div class="bg-white rounded-2xl shadow-sm flex flex-col border border-gray-100 overflow-hidden relative">
             ${isSold ? '<div class="absolute inset-0 bg-black/40 z-10 flex items-center justify-center"><span class="bg-red-600 text-white font-black px-4 py-1 rounded-full rotate-[-10deg]">SOLD OUT</span></div>' : ''}
-            <img src="${item.image}" class="w-full h-48 md:h-56 object-cover">
+            <img src="${finalImg}" class="w-full h-48 md:h-56 object-cover bg-gray-100">
             <div class="p-4 flex flex-col flex-grow">
-              <h3 class="font-bold text-sm md:text-base">${item.name}</h3>
-              <p class="text-gray-500 text-xs mt-1">Size: ${item.size}</p>
-              <p class="text-black font-black text-lg mt-2 mb-4">฿${item.price}</p>
-              <button onclick="openProductDetail('${item.name}', '${item.size}', '${item.price}', '${item.image}', '${item.Chest}', '${item.Length}', '${item.Defect}')" 
+              <h3 class="font-bold text-sm md:text-base">${itemName}</h3>
+              <p class="text-gray-500 text-xs mt-1">Size: ${itemSize}</p>
+              <p class="text-black font-black text-lg mt-2 mb-4">฿${itemPrice}</p>
+              <button onclick="openProductDetail('${itemName}', '${itemSize}', '${itemPrice}', '${finalImg}', '${item.Chest || item.chest || ""}', '${item.Length || item.length || ""}', '${item.Defect || item.defect || ""}')" 
                       class="mt-auto block w-full text-center py-2 rounded-lg font-bold text-sm bg-black text-white ${isSold ? 'opacity-50 cursor-not-allowed' : ''}" ${isSold ? 'disabled' : ''}>
                 ${isSold ? 'สินค้าหมด' : 'ดูรายละเอียด / สั่งซื้อ'}
               </button>
