@@ -441,7 +441,6 @@
     }
     
     function filterStock(cat, btn) {
-      // 1. ระบบจัดการปุ่มสีดำ/เทา (แบบดั้งเดิมของฟิว)
       if(btn) { 
         document.querySelectorAll('.category-chip').forEach(el => { 
           el.classList.remove('active'); el.classList.add('inactive'); 
@@ -450,52 +449,61 @@
       }
       
       const grid = document.getElementById('product-grid');
-      
-      // 2. ระบบกรองหมวดหมู่ที่เสถียรที่สุด (ตามแบบฉบับโค้ดเดิมฟิว)
       const filtered = cat === 'ทั้งหมด' ? allProducts : allProducts.filter(i => i.category === cat);
       
-      // ดักกรณีไม่มีสินค้า
-      if(filtered.length === 0) { 
+      if(!filtered || filtered.length === 0) { 
         grid.innerHTML = '<p class="col-span-full text-center py-8 text-gray-500 font-medium">ไม่มีสินค้าในหมวดหมู่นี้</p>'; 
         return; 
       }
       
-      // 3. วาดการ์ดสินค้า
       grid.innerHTML = filtered.map(item => {
-        const itemStatus = item.status ? item.status.trim().toUpperCase() : (item.Status ? item.Status.trim().toUpperCase() : "");
-        const isSold = itemStatus === "SOLD";
-        
-        // 🚨 ดึงรูประบบเดียวกับเว็บเก่าฟิว: สกัด ID แล้วบังคับเป็นลิงก์อ่านตรง
-        let imageUrl = item.image ? item.image.toString().trim() : '';
-        imageUrl = imageUrl.replace(/[\[\]"']/g, ''); // เคลียร์ก้ามปูทิ้งเผื่อ Sheets ส่งมา
-        
-        const driveMatch = imageUrl.match(/[-\w]{25,}/);
-        if (imageUrl.includes('drive.google.com') && driveMatch) {
-            // ใช้ลิงก์มาตรฐานที่เปิดได้ทุกเครื่องแน่นอน
-            imageUrl = `https://drive.google.com/uc?export=view&id=${driveMatch[0]}`;
+        try {
+            const itemStatus = item.status ? item.status.trim().toUpperCase() : (item.Status ? item.Status.trim().toUpperCase() : "");
+            const isSold = itemStatus === "SOLD" || itemStatus === "SOLD OUT";
+            
+            // 🚨 1. จัดการรูปภาพ: ใช้ท่าไม้ตาย googleusercontent แบบโค้ดเก่าของฟิว (เสถียรสุด)
+            let rawImg = item.image || item.Image || item.IMAGE || '';
+            if (Array.isArray(rawImg)) rawImg = rawImg[0];
+            let imageUrl = rawImg.toString().replace(/[\[\]"']/g, '').trim();
+            
+            const driveMatch = imageUrl.match(/[-\w]{25,}/);
+            if (imageUrl.includes('drive.google.com') && driveMatch) {
+                imageUrl = `https://lh3.googleusercontent.com/d/$/${driveMatch[0]}`; 
+            }
+
+            // 🚨 2. เครื่องกรองโค้ดพัง: ลบ Enter, ลบลูกน้ำ, ลบคำพูด ที่ทำให้หน้าจอขาว
+            const cleanText = (str) => {
+                if (!str) return "";
+                return str.toString()
+                          .replace(/[\n\r]/g, ' ') // ลบการกด Enter เปลี่ยนเป็นเว้นวรรค
+                          .replace(/'/g, '`')      // เปลี่ยน ' เป็น `
+                          .replace(/"/g, '``');    // เปลี่ยน " เป็น ``
+            };
+            
+            const safeName = cleanText(item.name || item.Name);
+            const safeSize = cleanText(item.size || item.Size);
+            const itemPrice = item.price || item.Price || 0;
+            const safeChest = cleanText(item.Chest || item.chest);
+            const safeLength = cleanText(item.Length || item.length);
+            const safeDefect = cleanText(item.Defect || item.defect);
+
+            return `
+              <div class="bg-white rounded-2xl shadow-sm flex flex-col border border-gray-100 overflow-hidden relative">
+                ${isSold ? '<div class="absolute inset-0 bg-black/40 z-10 flex items-center justify-center"><span class="bg-red-600 text-white font-black px-4 py-1 rounded-full rotate-[-10deg]">SOLD OUT</span></div>' : ''}
+                <img src="${imageUrl}" class="w-full h-48 md:h-56 object-cover bg-gray-100" onerror="this.src='https://placehold.co/400x400?text=No+Image'">
+                <div class="p-4 flex flex-col flex-grow">
+                  <h3 class="font-bold text-sm md:text-base">${safeName || "ไม่มีชื่อ"}</h3>
+                  <p class="text-gray-500 text-xs mt-1">Size: ${safeSize || "-"}</p>
+                  <p class="text-black font-black text-lg mt-2 mb-4">฿${itemPrice}</p>
+                  <button onclick="openProductDetail('${safeName}', '${safeSize}', '${itemPrice}', '${imageUrl}', '${safeChest}', '${safeLength}', '${safeDefect}')" 
+                          class="mt-auto block w-full text-center py-2 rounded-lg font-bold text-sm bg-black text-white ${isSold ? 'opacity-50 cursor-not-allowed' : ''}" ${isSold ? 'disabled' : ''}>
+                    ${isSold ? 'สินค้าหมด' : 'ดูรายละเอียด / สั่งซื้อ'}
+                  </button>
+                </div>
+              </div>`;
+        } catch (e) {
+            return ''; // ถ้าข้อมูลแถวไหนพังหนักจริงๆ ให้ข้ามไปเลย หน้าเว็บจะได้ไม่พังทั้งหมด
         }
-
-        // 🚨 ป้องกันบั๊กชื่อสินค้ามี ' หรือ " ทำให้ปุ่มซื้อกดไม่ได้
-        const safeName = (item.name || "").toString().replace(/'/g, '`').replace(/"/g, '``');
-        const safeSize = (item.size || "").toString().replace(/'/g, '`').replace(/"/g, '``');
-        const safeChest = (item.Chest || item.chest || "").toString().replace(/'/g, '`').replace(/"/g, '``');
-        const safeLength = (item.Length || item.length || "").toString().replace(/'/g, '`').replace(/"/g, '``');
-        const safeDefect = (item.Defect || item.defect || "").toString().replace(/'/g, '`').replace(/"/g, '``');
-
-        return `
-          <div class="bg-white rounded-2xl shadow-sm flex flex-col border border-gray-100 overflow-hidden relative">
-            ${isSold ? '<div class="absolute inset-0 bg-black/40 z-10 flex items-center justify-center"><span class="bg-red-600 text-white font-black px-4 py-1 rounded-full rotate-[-10deg]">SOLD OUT</span></div>' : ''}
-            <img src="${imageUrl}" class="w-full h-48 md:h-56 object-cover bg-gray-100" onerror="this.src='https://placehold.co/400x400?text=No+Image'">
-            <div class="p-4 flex flex-col flex-grow">
-              <h3 class="font-bold text-sm md:text-base">${item.name || "ไม่มีชื่อ"}</h3>
-              <p class="text-gray-500 text-xs mt-1">Size: ${item.size || "-"}</p>
-              <p class="text-black font-black text-lg mt-2 mb-4">฿${item.price || 0}</p>
-              <button onclick="openProductDetail('${safeName}', '${safeSize}', '${item.price || 0}', '${imageUrl}', '${safeChest}', '${safeLength}', '${safeDefect}')" 
-                      class="mt-auto block w-full text-center py-2 rounded-lg font-bold text-sm bg-black text-white ${isSold ? 'opacity-50 cursor-not-allowed' : ''}" ${isSold ? 'disabled' : ''}>
-                ${isSold ? 'สินค้าหมด' : 'ดูรายละเอียด / สั่งซื้อ'}
-              </button>
-            </div>
-          </div>`;
       }).join('');
     }
     function openProductDetail(n, s, p, img, c, l, d) {
