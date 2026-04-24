@@ -180,7 +180,7 @@
         <li onclick="navTo('activitiesSection')">🎉 กิจกรรมพิเศษ</li>
         
         <li id="menuProfile" class="hidden" onclick="navTo('profileSection')">👤 โปรไฟล์สมาชิก</li>
-        <li id="menuMyOrders" class="hidden" onclick="navTo('myOrdersSection'); fetchMyOrders();">🛍️ สถานะการสั่งซื้อของฉัน</li>
+        <li id="menuMyOrders" class="hidden" onclick="navTo('myOrdersSection'); fetchMyOrders();">🎒 สถานะการสั่งซื้อของฉัน</li>
         <li id="menuRewards" class="hidden" onclick="navTo('rewardsSection')">🎁 แลกของรางวัล</li>
         <li id="menuLogout" class="logout hidden" onclick="logoutSystem()">🚪 ออกจากระบบ</li>
       </ul>
@@ -464,14 +464,24 @@
         const data = await response.json();
 
         if (data.status === "success") {
-          alert("✅ ชำระเงินสำเร็จ!\nคุณสามารถติดตามสถานะสลิปได้ที่เมนู 'สถานะการสั่งซื้อของฉัน'");
-          closeCheckoutModal();
-          navTo('myOrdersSection');
-          fetchMyOrders();
-        } else { alert("❌ เกิดข้อผิดพลาด: " + data.message); }
-      } catch (error) { alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง"); } 
-      finally { btn.innerText = "ยืนยันการชำระเงิน"; btn.disabled = false; }
-    }
+          // ⚠️ เปลี่ยนจาก alert ธรรมดา เป็นป๊อปอัปสวยๆ
+          showCustomPopup(
+             'success', 
+             'สั่งซื้อสำเร็จ!', 
+             'ระบบกำลังส่งข้อมูลให้แอดมิน<br>ติดตามสถานะได้ที่เมนู "สถานะการสั่งซื้อ"', 
+             function() {
+                closeCheckoutModal();
+                navTo('myOrdersSection');
+                fetchMyOrders();
+             }
+          );
+        } else {
+          showCustomPopup('error', 'เกิดข้อผิดพลาด', data.message);
+        }
+      } catch (error) {
+        // เปลี่ยนจาก alert เป็น showCustomPopup
+        showCustomPopup('error', 'การเชื่อมต่อขัดข้อง', 'กรุณาลองใหม่อีกครั้ง หรือติดต่อแอดมินครับ');
+      } finally {
 
     // ================= ระบบดูสถานะออเดอร์ (เมนูใหม่) =================
     async function fetchMyOrders() {
@@ -531,6 +541,62 @@
       else { custBox.classList.add('hidden'); adminBox.classList.remove('hidden'); btn.innerText = 'กลับไปหน้าค้นหา'; btn.classList.replace('bg-gray-200', 'bg-black'); btn.classList.replace('text-gray-700', 'text-white'); }
     }
     // [ฟังก์ชัน Tracking อื่นๆ ของเดิม พี่เก็บไว้ให้ครบถ้วนในไฟล์นี้แล้ว เพื่อให้ฟิวก๊อปวางง่ายๆ]
+  </script>
+  <style>
+    .custom-popup-overlay {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px);
+      z-index: 10000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;
+    }
+    .custom-popup-box {
+      background: white; padding: 30px; border-radius: 24px; text-align: center; max-width: 320px; width: 90%;
+      transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .custom-popup-overlay.show { display: flex; opacity: 1; }
+    .custom-popup-overlay.show .custom-popup-box { transform: scale(1); }
+    
+    .popup-icon { font-size: 50px; margin-bottom: 15px; display: inline-block; }
+    .popup-icon.success { animation: bounceIn 0.8s; }
+    .popup-icon.error { animation: shake 0.5s; }
+    
+    @keyframes bounceIn { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+  </style>
+
+  <div id="customPopup" class="custom-popup-overlay">
+    <div class="custom-popup-box">
+      <div id="popupIcon" class="popup-icon">✅</div>
+      <h3 id="popupTitle" class="text-xl font-bold text-black mb-2">สำเร็จ!</h3>
+      <p id="popupMessage" class="text-gray-500 text-sm mb-6 leading-relaxed">ข้อความแจ้งเตือน</p>
+      <button id="popupBtn" class="w-full bg-black text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition shadow-md">ตกลง</button>
+    </div>
+  </div>
+
+  <script>
+    // ฟังก์ชันสำหรับเรียกใช้ป๊อปอัปสวยๆ
+    function showCustomPopup(type, title, message, callback) {
+      const popup = document.getElementById('customPopup');
+      const icon = document.getElementById('popupIcon');
+      const titleEl = document.getElementById('popupTitle');
+      const msgEl = document.getElementById('popupMessage');
+      const btn = document.getElementById('popupBtn');
+
+      if(type === 'success') {
+        icon.innerText = '🎉'; icon.className = 'popup-icon success'; titleEl.style.color = '#00B900';
+      } else {
+        icon.innerText = '❌'; icon.className = 'popup-icon error'; titleEl.style.color = '#EF4444';
+      }
+
+      titleEl.innerText = title;
+      msgEl.innerHTML = message; // รองรับ <br>
+
+      popup.classList.add('show');
+
+      // ล้าง Event เก่าและใส่ Event ใหม่ให้ปุ่ม "ตกลง"
+      btn.onclick = function() {
+        popup.classList.remove('show');
+        if(callback) setTimeout(callback, 300); // รอให้แอนิเมชันปิดเสร็จค่อยทำคำสั่งถัดไป
+      };
+    }
   </script>
 </body>
 </html>
