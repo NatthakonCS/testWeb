@@ -352,6 +352,8 @@
       fetchProducts(); 
       const savedPhone = localStorage.getItem('hc_phone');
       if (savedPhone) { currentUserPhone = savedPhone; loginSystem(true); }
+      // 🚨 เอาระบบอ่าน #ลิงก์ต่อท้าย กลับมา
+      setTimeout(() => { const hash = window.location.hash.substring(1); if (hash && document.getElementById(hash)) navTo(hash); }, 100); 
     }
 
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
