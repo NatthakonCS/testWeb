@@ -512,15 +512,34 @@
           slipBase64: base64, mimeType: file.type, filename: file.name
         };
         try {
-          const res = await fetch(CHECKOUT_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+          // 🚨 เพิ่ม Headers กันระบบเบราว์เซอร์บล็อก
+          const res = await fetch(CHECKOUT_API_URL, { 
+              method: 'POST', 
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify(payload) 
+          });
           const d = await res.json();
           if(d.status === "success") { 
-            // 🚨 สั่งยิงข้อมูลไปล็อกสินค้าเป็น SOLD ในชีตสต็อกทันทีที่ลูกค้ากดสั่งซื้อสำเร็จ
-            fetch(STOCK_API_URL, { method: 'POST', body: JSON.stringify({ action: "markSold", productName: productName }) });
             
-            alert("ชำระเงินสำเร็จ!"); closeCheckoutModal(); navTo('myOrdersSection'); fetchMyOrders(); 
+            // 🚨 ใส่ await บังคับให้ระบบส่งคำสั่งไปล็อก SOLD ให้เสร็จ 100% ก่อนปิดหน้าต่าง
+            try {
+              await fetch(STOCK_API_URL, { 
+                  method: 'POST', 
+                  headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                  body: JSON.stringify({ action: "markSold", productName: productName.trim() }) 
+              });
+            } catch(e) { console.log(e); }
+            
+            alert("ชำระเงินสำเร็จ!"); 
+            closeCheckoutModal(); 
+            navTo('myOrdersSection'); 
+            fetchMyOrders(); 
+          } else {
+             alert("เกิดข้อผิดพลาด: " + d.message);
           }
-        } catch(e) { alert("เกิดข้อผิดพลาด"); }
+        } catch(e) { 
+            alert("เกิดข้อผิดพลาดในการส่งข้อมูล"); 
+        }
         finally { btn.innerText = "ยืนยันการชำระเงิน"; btn.disabled = false; }
       };
     }
@@ -529,7 +548,12 @@
       const list = document.getElementById('myOrdersList');
       list.innerHTML = '<div class="text-center py-10 text-gray-400 font-medium">กำลังโหลดข้อมูล...</div>';
       try {
-        const res = await fetch(CHECKOUT_API_URL, { method: 'POST', body: JSON.stringify({ action: "getMyOrders", phone: currentUserPhone }) });
+        // 🚨 เพิ่ม Headers กันระบบเบราว์เซอร์บล็อกเช่นกัน
+        const res = await fetch(CHECKOUT_API_URL, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: "getMyOrders", phone: currentUserPhone }) 
+        });
         const d = await res.json();
         if(d.status === "success") {
           if (d.data.length === 0) {
@@ -543,7 +567,7 @@
           }
         }
       } catch(e) {
-         list.innerHTML = '<div class="text-center py-10 text-red-500 font-medium">เกิดข้อผิดพลาดในการดึงข้อมูล</div>';
+         list.innerHTML = '<div class="text-center py-10 text-red-500 font-medium">เกิดข้อผิดพลาดในการดึงข้อมูล (ตรวจสอบว่า Deploy หลังบ้านครบแล้ว)</div>';
       }
     }
 
