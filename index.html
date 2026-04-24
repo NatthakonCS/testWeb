@@ -353,7 +353,25 @@
     function openLoginModal() { document.getElementById('loginModal').classList.add('active'); }
     function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
     function switchForm(f) { if(f==='register'){document.getElementById('formLogin').classList.add('hidden'); document.getElementById('formRegister').classList.remove('hidden');}else{document.getElementById('formRegister').classList.add('hidden'); document.getElementById('formLogin').classList.remove('hidden');} }
+   
+    async function registerSystem() {
+      const name = document.getElementById('regName').value.trim(); const phone = document.getElementById('regPhone').value.trim(); const pin = document.getElementById('regPin').value.trim();
+      const errorText = document.getElementById('regError'); const btn = document.getElementById('regBtn');
+      if(!name || !phone || !pin) { errorText.innerText = 'กรุณากรอกข้อมูลให้ครบถ้วนครับ'; errorText.classList.remove('hidden'); return; }
+      if(pin.length !== 4) { errorText.innerText = 'รหัส PIN ต้องเป็นตัวเลข 4 หลักครับ'; errorText.classList.remove('hidden'); return; }
 
+      btn.innerText = 'กำลังสมัคร...'; btn.disabled = true; errorText.classList.add('hidden');
+      try {
+        const response = await fetch(`${POINT_API_URL}?action=register&phone=${phone}&name=${encodeURIComponent(name)}&pin=${pin}`);
+        const data = await response.json();
+        if (data.success) {
+          alert('สมัครสมาชิกสำเร็จ!');
+          document.getElementById('loginPhone').value = phone; document.getElementById('loginPin').value = pin;
+          loginSystem();
+        } else { errorText.innerText = data.message; errorText.classList.remove('hidden'); }
+      } catch (error) { errorText.innerText = 'เชื่อมต่อไม่สำเร็จ'; errorText.classList.remove('hidden'); } 
+      finally { btn.innerText = 'ยืนยันการสมัคร'; btn.disabled = false; }
+    }
     async function loginSystem(auto = false) {
       const p = document.getElementById('loginPhone').value || currentUserPhone;
       const pin = document.getElementById('loginPin').value;
@@ -377,44 +395,7 @@
         }
       } catch(e){}
     }
-    async function registerSystem() {
-      const name = document.getElementById('regName').value.trim();
-      const phone = document.getElementById('regPhone').value.trim();
-      const pin = document.getElementById('regPin').value.trim();
-
-      // เช็คความเรียบร้อยก่อนส่ง
-      if (!name || !phone || !pin) return alert("⚠️ กรุณากรอกข้อมูลให้ครบทุกช่องครับ");
-      if (phone.length < 10) return alert("⚠️ กรุณากรอกเบอร์โทรให้ครบ 10 หลักครับ");
-      if (pin.length < 4) return alert("⚠️ กรุณาตั้งรหัส PIN ให้ครบ 4 หลักครับ");
-
-      const btn = document.getElementById('regBtn');
-      const errorText = document.getElementById('regError');
-      
-      btn.innerText = 'กำลังลงทะเบียน...';
-      btn.disabled = true;
-      errorText.classList.add('hidden');
-
-      try {
-        // ส่งข้อมูลไปที่ highclassSystem (GAS)
-        const response = await fetch(`${POINT_API_URL}?action=register&phone=${phone}&name=${encodeURIComponent(name)}&pin=${pin}`);
-        const data = await response.json();
-
-        if (data.success) {
-          alert("🎉 " + data.message);
-          switchForm('login'); // สมัครเสร็จให้ดีดไปหน้า Login ทันที
-          document.getElementById('loginPhone').value = phone;
-          document.getElementById('loginPin').value = pin;
-        } else {
-          alert(data.message);
-        }
-      } catch (error) {
-        alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อระบบสมัครสมาชิก");
-      } finally {
-        btn.innerText = 'ยืนยันการสมัคร';
-        btn.disabled = false;
-      }
-    }
-
+    
     function logoutSystem() { localStorage.clear(); window.location.reload(); }
 
     let allProducts = []; 
