@@ -464,7 +464,7 @@
         const data = await response.json();
 
         if (data.status === "success") {
-          alert("✅ ชำระเงินสำเร็จ!\nคุณสามารถติดตามสถานะสลิปได้ที่เมนู 'สถานะการสั่งซื้อของฉัน'");
+          alert("🟡 สั่งซื้อสำเร็จ!\nคุณสามารถติดตามสถานะสลิปได้ที่เมนู 'สถานะการสั่งซื้อของฉัน'");
           closeCheckoutModal();
           navTo('myOrdersSection');
           fetchMyOrders();
