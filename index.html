@@ -191,6 +191,11 @@
     <div class="main-content">
       <div id="stockSection" class="section active">
         <h2 class="text-2xl font-bold text-black mb-4">สินค้าพร้อมส่ง</h2>
+        <div id="browserWarning" class="hidden mb-4 p- bg-yellow-50 border border-yellow-200 rounded-xl text-center">
+    <p class="text-xs text-yellow-700 font-medium">
+        ⚠️ ถ้ารูปไม่โหลด ให้กดจุด 3 จุดที่มุมบน <br> แล้วเลือก <b>"เปิดในเบราว์เซอร์"</b> (Open in Browser) นะครับ
+    </p>
+</div>
         <div class="flex gap-2 mb-6 overflow-x-auto pb-2 hide-scroll">
           <button onclick="filterStock('ทั้งหมด', this)" class="category-chip active">ทั้งหมด</button>
           <button onclick="filterStock('เสื้อคลุม', this)" class="category-chip inactive">เสื้อคลุม</button>
@@ -203,11 +208,7 @@
         <div id="stock-loading" class="text-center py-10 text-gray-400">กำลังโหลดรายการสินค้า...</div>
         <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
       </div>
-      <div id="browserWarning" class="hidden mb-4 p- bg-yellow-50 border border-yellow-200 rounded-xl text-center">
-    <p class="text-xs text-yellow-700 font-medium">
-        ⚠️ ถ้ารูปไม่โหลด ให้กดจุด 3 จุดที่มุมบน <br> แล้วเลือก <b>"เปิดในเบราว์เซอร์"</b> (Open in Browser) นะครับ
-    </p>
-</div>
+      
 
       <div id="myOrdersSection" class="section">
         <h2 class="text-2xl font-bold text-black mb-6">สถานะการสั่งซื้อของฉัน</h2>
@@ -439,12 +440,35 @@
 
     let allProducts = []; 
     async function fetchProducts() {
+      // 🚨 ทริคโหลดไว 0.1 วิ: ดึงข้อมูลที่เคยโหลดไว้ในเครื่องลูกค้าขึ้นมาโชว์ก่อนเลย ไม่ต้องรอ Google!
+      const cachedData = localStorage.getItem('hc_stock_cache');
+      if (cachedData) {
+         try {
+           allProducts = JSON.parse(cachedData);
+           document.getElementById('stock-loading').style.display = 'none';
+           
+           const activeBtn = document.querySelector('.category-chip.active');
+           const currentCat = activeBtn ? activeBtn.innerText.trim() : 'ทั้งหมด';
+           filterStock(currentCat, activeBtn);
+         } catch(e) {}
+      }
+
+      // 🚨 แล้วแอบให้ระบบวิ่งไปเช็คสต็อกอัปเดตล่าสุดกับ Google หลังบ้านแบบเงียบๆ
       try {
-        const res = await fetch(STOCK_API_URL); allProducts = await res.json(); 
-        document.getElementById('stock-loading').style.display = 'none'; 
-        // 🚨 แก้บั๊กพิมพ์ตกตรงนี้: กลับมาเรียก filterStock ให้ถูกต้อง
-        filterStock('ทั้งหมด', document.querySelector('.category-chip')); 
-      } catch(e){}
+        const res = await fetch(STOCK_API_URL); 
+        const freshData = await res.json(); 
+        
+        // ถ้าสต็อกมีการเปลี่ยนแปลง (เช่น มีคนซื้อไป หรือเพิ่มของใหม่) ค่อยอัปเดตหน้าจอใหม่เนียนๆ
+        if (JSON.stringify(allProducts) !== JSON.stringify(freshData)) {
+           allProducts = freshData;
+           localStorage.setItem('hc_stock_cache', JSON.stringify(freshData)); // เซฟของใหม่ลงเครื่อง
+           
+           document.getElementById('stock-loading').style.display = 'none'; 
+           const activeBtn = document.querySelector('.category-chip.active');
+           const currentCat = activeBtn ? activeBtn.innerText.trim() : 'ทั้งหมด';
+           filterStock(currentCat, activeBtn);
+        }
+      } catch(e) {}
     }
     
     function filterStock(cat, btn) {
