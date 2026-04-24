@@ -192,13 +192,13 @@
       <div id="stockSection" class="section active">
         <h2 class="text-2xl font-bold text-black mb-4">สินค้าพร้อมส่ง</h2>
         <div class="flex gap-2 mb-6 overflow-x-auto pb-2 hide-scroll">
-          <button onclick="Stock('ทั้งหมด', this)" class="category-chip active">ทั้งหมด</button>
-          <button onclick="Stock('เสื้อคลุม', this)" class="category-chip inactive">เสื้อคลุม</button>
-          <button onclick="Stock('เสื้อ T-shirt', this)" class="category-chip inactive">เสื้อ T-shirt</button>
-          <button onclick="Stock('โปโล', this)" class="category-chip inactive">โปโล</button>
-          <button onclick="Stock('เสื้อสาวๆ', this)" class="category-chip inactive">เสื้อสาวๆ</button>
-          <button onclick="Stock('หมวก', this)" class="category-chip inactive">หมวก</button>
-          <button onclick="Stock('กางเกง', this)" class="category-chip inactive">กางเกง</button>
+          <button onclick="filterStock('ทั้งหมด', this)" class="category-chip active">ทั้งหมด</button>
+          <button onclick="filterStock('เสื้อคลุม', this)" class="category-chip inactive">เสื้อคลุม</button>
+          <button onclick="filterStock('เสื้อ T-shirt', this)" class="category-chip inactive">เสื้อ T-shirt</button>
+          <button onclick="filterStock('โปโล', this)" class="category-chip inactive">โปโล</button>
+          <button onclick="filterStock('เสื้อสาวๆ', this)" class="category-chip inactive">เสื้อสาวๆ</button>
+          <button onclick="filterStock('หมวก', this)" class="category-chip inactive">หมวก</button>
+          <button onclick="filterStock('กางเกง', this)" class="category-chip inactive">กางเกง</button>
         </div>
         <div id="stock-loading" class="text-center py-10 text-gray-400">กำลังโหลดรายการสินค้า...</div>
         <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
@@ -437,7 +437,7 @@
       try {
         const res = await fetch(STOCK_API_URL); allProducts = await res.json(); 
         document.getElementById('stock-loading').style.display = 'none'; 
-        // 🚨 แก้บั๊กพิมพ์ตกตรงนี้ จาก tock กลับเป็น filterStock
+        // 🚨 แก้บั๊กพิมพ์ตกตรงนี้: กลับมาเรียก filterStock ให้ถูกต้อง
         filterStock('ทั้งหมด', document.querySelector('.category-chip')); 
       } catch(e){}
     }
@@ -445,7 +445,9 @@
     function filterStock(cat, btn) {
       if(btn) { document.querySelectorAll('.category-chip').forEach(el => { el.classList.remove('active'); el.classList.add('inactive'); }); btn.classList.remove('inactive'); btn.classList.add('active'); }
       const grid = document.getElementById('product-grid');
-      const filtered = cat === 'ทั้งหมด' ? allProducts : allProducts.filter(i => i.category === cat);
+      
+      // ดักตัวพิมพ์เล็ก/ใหญ่ของชื่อคอลัมน์หมวดหมู่
+      const filtered = cat === 'ทั้งหมด' ? allProducts : allProducts.filter(i => (i.category || i.Category || "").trim() === cat);
       
       if(filtered.length === 0) { 
         grid.innerHTML = '<p class="col-span-full text-center py-8 text-gray-500 font-medium">ไม่มีสินค้าในหมวดหมู่นี้</p>'; 
@@ -456,17 +458,12 @@
         const itemStatus = (item.Status || item.status || "").trim().toUpperCase();
         const isSold = itemStatus === "SOLD" || itemStatus === "SOLD OUT";
         
-        // 🚨 1. แก้บั๊กรูปไม่ขึ้น: ลบวงเล็บ [ ] ออก และแปลงลิงก์ Drive ให้อ่านได้ชัวร์ๆ
+        // 🚨 แก้บั๊กรูป 404: ล้างวงเล็บ [ ] และเครื่องหมายคำพูดที่แถมมาจาก Sheets ออกให้เกลี้ยง
         let rawImg = item.image || item.Image || item.IMAGE || "";
         if (Array.isArray(rawImg)) rawImg = rawImg[0];
         let imageUrl = rawImg.toString().replace(/[\[\]"']/g, '').trim();
 
-        const driveMatch = imageUrl.match(/[-\w]{25,}/);
-        if (imageUrl.includes('drive.google.com') && driveMatch) {
-            imageUrl = `https://drive.google.com/uc?export=view&id=${driveMatch[0]}`;
-        }
-
-        // 🚨 2. แก้บั๊กปุ่มพัง: ทำความสะอาดเครื่องหมายคำพูดและ Enter ในชื่อสินค้าก่อนส่งไปที่ปุ่ม
+        // 🚨 ล้างข้อมูลชื่อและรายละเอียด กันหน้าเว็บพัง
         const cleanText = (str) => {
             if (!str) return "";
             return str.toString().replace(/[\n\r]/g, ' ').replace(/'/g, '`').replace(/"/g, '``');
