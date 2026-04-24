@@ -23,14 +23,6 @@
     .category-chip.active { background-color: black; color: white; }
     .category-chip.inactive { background-color: #e5e7eb; color: #374151; }
     input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-
-    .popup-box { transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    .popup-show .popup-box { transform: scale(1); }
-    .popup-icon { font-size: 50px; margin-bottom: 15px; display: inline-block; }
-    .popup-icon.success { animation: bounceIn 0.8s; }
-    .popup-icon.error { animation: shake 0.5s; }
-    @keyframes bounceIn { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
   </style>
 </head>
 <body class="bg-gray-100" onload="initApp()">
@@ -54,7 +46,7 @@
     </div>
   </nav>
 
-  <div id="loginModal" class="hidden fixed inset-0 bg-black/70 z-[9900] items-center justify-center p-4 backdrop-blur-sm">
+  <div id="loginModal" class="hidden fixed inset-0 bg-black/70 z-[9990] items-center justify-center p-4 backdrop-blur-sm">
     <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md text-center relative border border-gray-100">
       <button onclick="closeLoginModal()" class="absolute top-4 right-5 text-3xl font-bold text-gray-400 hover:text-red-500 leading-none">×</button>
       <h2 class="text-3xl font-bold tracking-widest uppercase text-black mt-2">HighClass</h2>
@@ -62,6 +54,569 @@
       <div id="formLogin">
         <p class="text-gray-500 font-medium mb-6 mt-1">เข้าสู่ระบบเพื่อทำการสั่งซื้อ</p>
         <div class="text-left mb-4">
+          <label class="block text-sm font-bold text-gray-700 mb-2">เบอร์โทรศัพท์มือถือ</label>
+          <input type="text" id="loginPhone" class="w-full p-4 border-2 border-gray-200 rounded-2xl font-bold text-lg text-center focus:border-black outline-none transition" placeholder="08X-XXX-XXXX">
+        </div>
+        <div class="text-left mb-6">
+          <label class="block text-sm font-bold text-gray-700 mb-2">รหัส PIN 4 หลัก</label>
+          <input type="password" id="loginPin" maxlength="4" inputmode="numeric" class="w-full p-4 border-2 border-gray-200 rounded-2xl font-bold text-2xl tracking-widest text-center focus:border-black outline-none transition" placeholder="••••">
+        </div>
+        <button id="loginBtn" class="w-full bg-black text-white font-bold py-4 rounded-2xl hover:bg-gray-800 transition shadow-lg text-lg" onclick="loginSystem()">เข้าสู่ระบบ</button>
+        <p id="loginError" class="text-red-500 font-semibold text-sm mt-3 hidden"></p>
+        <div class="mt-5 pt-4 border-t border-gray-100">
+          <span class="text-gray-500 text-sm">ยังไม่มีบัญชี? </span>
+          <button onclick="switchForm('register')" class="text-black font-bold hover:underline">สมัครสมาชิกที่นี่</button>
+        </div>
+      </div>
+
+      <div id="formRegister" class="hidden">
+        <p class="text-black font-bold mb-4 mt-1">สมัครสมาชิกใหม่</p>
+        <div class="text-left mb-3">
+          <label class="block text-xs font-bold text-gray-700 mb-1">ชื่อเรียก / ชื่อเล่น</label>
+          <input type="text" id="regName" class="w-full p-3 border-2 border-gray-200 rounded-xl font-bold text-center focus:border-black outline-none transition" placeholder="ใส่ชื่อของคุณ">
+        </div>
+        <div class="text-left mb-3">
+          <label class="block text-xs font-bold text-gray-700 mb-1">เบอร์โทรศัพท์มือถือ (ใช้เป็น ID)</label>
+          <input type="text" id="regPhone" class="w-full p-3 border-2 border-gray-200 rounded-xl font-bold text-center focus:border-black outline-none transition" placeholder="08X-XXX-XXXX">
+        </div>
+        <div class="text-left mb-5">
+          <label class="block text-xs font-bold text-gray-700 mb-1">ตั้งรหัส PIN 4 หลัก</label>
+          <input type="password" id="regPin" maxlength="4" inputmode="numeric" class="w-full p-3 border-2 border-gray-200 rounded-xl font-bold text-2xl tracking-widest text-center focus:border-black outline-none transition" placeholder="••••">
+        </div>
+        <button id="regBtn" class="w-full bg-green-500 text-white font-bold py-3 rounded-xl hover:bg-green-600 transition shadow-md text-lg" onclick="registerSystem()">ยืนยันการสมัคร</button>
+        <p id="regError" class="text-red-500 font-semibold text-sm mt-3 hidden"></p>
+        <div class="mt-4 pt-4 border-t border-gray-100">
+          <span class="text-gray-500 text-sm">มีบัญชีอยู่แล้ว? </span>
+          <button onclick="switchForm('login')" class="text-black font-bold hover:underline">กลับไปเข้าสู่ระบบ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="checkoutModal" class="hidden fixed inset-0 bg-black/70 z-[9950] items-center justify-center p-4 backdrop-blur-sm overflow-y-auto" onclick="if(event.target === this) closeCheckoutModal()">
+    <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full max-w-lg relative border border-gray-100 my-8">
+      <button onclick="closeCheckoutModal()" class="absolute top-4 right-5 text-4xl font-bold text-gray-400 hover:text-red-500 leading-none z-50">×</button>
+      <h2 class="text-2xl font-bold tracking-wide text-black mb-4 border-b pb-2">คำสั่งซื้อของคุณ</h2>
+      
+      <div class="flex gap-4 bg-gray-50 p-4 rounded-xl mb-4 border border-gray-100">
+        <img id="co-img" src="" class="w-20 h-20 object-cover rounded-lg shadow-sm">
+        <div class="flex-grow flex flex-col justify-center">
+          <h3 id="co-name" class="font-bold text-gray-800 text-sm md:text-base">ชื่อสินค้า</h3>
+          <p id="co-size" class="text-gray-500 text-xs mt-1">Size: -</p>
+          <p id="co-price" class="text-black font-black text-lg mt-1">฿0</p>
+        </div>
+      </div>
+
+      <div class="space-y-3 mb-6">
+        <h3 class="font-bold text-sm text-gray-700">ข้อมูลจัดส่ง</h3>
+        <input type="text" id="co-cust-name" class="w-full p-3 border-2 border-gray-200 rounded-xl font-medium focus:border-black outline-none text-sm" placeholder="ชื่อ-นามสกุล">
+        <input type="text" id="co-cust-phone" class="w-full p-3 border-2 border-gray-200 rounded-xl font-medium focus:border-black outline-none text-sm bg-gray-100" placeholder="เบอร์โทรศัพท์" disabled>
+        <textarea id="co-cust-address" rows="2" class="w-full p-3 border-2 border-gray-200 rounded-xl font-medium focus:border-black outline-none text-sm" placeholder="ที่อยู่จัดส่งแบบละเอียด"></textarea>
+        <input type="text" id="co-cust-zip" class="w-full p-3 border-2 border-gray-200 rounded-xl font-medium focus:border-black outline-none text-sm" placeholder="รหัสไปรษณีย์">
+      </div>
+
+      <div class="border-t pt-4">
+        <h3 class="font-bold text-sm text-gray-700 mb-3 text-center">เลือกช่องทางการชำระเงิน</h3>
+        
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-3">
+            <div class="flex items-center justify-center gap-2 mb-3 font-bold text-blue-800">
+                <span>🏦</span> สแกนพร้อมเพย์ (ทุกธนาคาร)
+            </div>
+            <div class="flex justify-center mb-3">
+                <div id="qrcode" class="p-2 bg-white border-2 border-blue-100 rounded-xl shadow-sm"></div>
+            </div>
+            <div class="text-center">
+                <p class="text-xs text-blue-600 mb-1">หรือโอนเข้าเลขพร้อมเพย์</p>
+                <p class="text-sm font-black text-blue-800 tracking-wider">084-583-3256</p>
+                <p class="text-xs text-blue-600 mt-1">ชื่อบัญชี: ณัฐกรณ์</p>
+            </div>
+        </div>
+
+        <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-5">
+            <div class="flex items-center justify-center gap-2 mb-2 font-bold text-orange-800">
+                <span>🧡</span> โอนเข้า TrueMoney Wallet
+            </div>
+            <div class="text-center mt-2">
+                <p class="text-xs text-orange-600 mb-1">เบอร์วอเลท</p>
+                <p class="font-black text-xl text-orange-700 tracking-wider">084-583-3256</p>
+                <p class="text-xs text-orange-600 mt-1">ชื่อบัญชี: ณัฐกรณ์</p>
+            </div>
+        </div>
+        
+        <label class="block text-sm font-bold text-gray-700 mb-2">แนบสลิปโอนเงิน (จำเป็น)</label>
+        <input type="file" id="co-slip" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800 mb-6">
+        
+        <div class="flex gap-3">
+            <button onclick="closeCheckoutModal()" class="w-1/3 bg-gray-200 text-gray-700 font-bold py-4 rounded-xl hover:bg-gray-300 transition shadow-md text-base md:text-lg">ยกเลิก</button>
+            <button id="co-submitBtn" onclick="submitCheckout()" class="w-2/3 bg-[#00B900] text-white font-bold py-4 rounded-xl hover:bg-[#009900] transition shadow-md text-base md:text-lg">ยืนยัน</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="overlay" class="hidden fixed inset-0 bg-black/60 z-[9980] backdrop-blur-sm" onclick="toggleSidebar()"></div>
+  
+  <div id="sidebar" class="fixed top-0 bottom-0 left-[-280px] w-[280px] bg-white z-[9985] transition-transform duration-300 shadow-xl flex flex-col">
+    <div class="p-6 bg-black text-white flex justify-between items-center">
+      <h2 class="text-xl font-bold tracking-widest uppercase">HighClass</h2>
+      <button onclick="toggleSidebar()" class="text-3xl font-bold hover:text-red-500 leading-none">×</button>
+    </div>
+    <ul class="sidebar-menu flex-grow">
+      <li onclick="navTo('stockSection')">👕 สินค้าพร้อมส่ง</li>
+      <li onclick="navTo('trackingSection')">📦 เช็คสถานะพัสดุ</li>
+      <li onclick="navTo('privilegeSection')">👑 สิทธิพิเศษ</li> 
+      <li onclick="navTo('activitiesSection')">🎉 กิจกรรมพิเศษ</li>
+      
+      <li id="menuProfile" class="hidden" onclick="navTo('profileSection')">👤 โปรไฟล์สมาชิก</li>
+      <li id="menuMyOrders" class="hidden" onclick="navTo('myOrdersSection'); fetchMyOrders();">🛍️ สถานะการสั่งซื้อของฉัน</li>
+      <li id="menuRewards" class="hidden" onclick="navTo('rewardsSection')">🎁 แลกของรางวัล</li>
+      <li id="menuLogout" class="logout hidden" onclick="logoutSystem()">🚪 ออกจากระบบ</li>
+    </ul>
+  </div>
+
+  <div class="main-content">
+    
+    <div id="stockSection" class="section active">
+      <div class="flex justify-between items-end mb-4">
+        <div><h2 class="text-2xl font-bold text-black">สินค้าพร้อมส่ง</h2><p class="text-gray-500 text-sm font-medium">เลือกดูสินค้าที่ยังมีในสต๊อก</p></div>
+      </div>
+      <div class="flex gap-2 mb-6 overflow-x-auto pb-2 hide-scroll" id="category-container">
+        <button onclick="filterStock('ทั้งหมด', this)" class="category-chip active">ทั้งหมด</button>
+        <button onclick="filterStock('เสื้อคลุม', this)" class="category-chip inactive">เสื้อคลุม</button>
+        <button onclick="filterStock('เสื้อ T-shirt', this)" class="category-chip inactive">เสื้อ T-shirt</button>
+        <button onclick="filterStock('โปโล', this)" class="category-chip inactive">โปโล</button>
+        <button onclick="filterStock('เสื้อสาวๆ', this)" class="category-chip inactive">เสื้อสาวๆ</button>
+        <button onclick="filterStock('หมวก', this)" class="category-chip inactive">หมวก</button>
+        <button onclick="filterStock('กางเกง', this)" class="category-chip inactive">กางเกง</button>
+      </div>
+      <div id="stock-loading" class="text-center py-10 font-medium text-gray-400">กำลังโหลดรายการสินค้า...</div>
+      <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"></div>
+    </div>
+
+    <div id="myOrdersSection" class="section">
+      <h2 class="text-2xl font-bold text-black mb-1">สถานะการสั่งซื้อของฉัน</h2>
+      <p class="text-gray-500 text-sm font-medium mb-6">ติดตามสถานะออเดอร์และการชำระเงิน</p>
+      <div id="myOrdersList" class="flex flex-col gap-4"></div>
+    </div>
+
+    <div id="trackingSection" class="section">
+       <div class="mb-6 flex justify-between items-center">
+          <div><h2 class="text-2xl font-bold text-black">ตรวจสอบพัสดุ</h2></div>
+          <button onclick="toggleTrackMode()" id="modeTrackBtn" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-xs font-bold hover:bg-black hover:text-white transition shadow-sm">Admin Login</button>
+       </div>
+       <div id="trackCustomerBox" class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 max-w-2xl mx-auto">
+          <div class="flex flex-col sm:flex-row gap-3">
+            <input type="text" id="trackInput" class="flex-grow p-4 border-2 border-gray-200 rounded-2xl font-bold text-center sm:text-left focus:border-black outline-none transition text-lg" placeholder="ค้นหาด้วย ชื่อ หรือ เบอร์โทร">
+            <button onclick="searchParcel()" id="trackBtn" class="bg-black text-white font-bold py-4 px-8 rounded-2xl hover:bg-gray-800 transition shadow-md text-lg whitespace-nowrap">ค้นหา</button>
+          </div>
+          <div id="trackResult" class="mt-8 hidden flex-col gap-3"></div>
+       </div>
+       <div id="trackAdminBox" class="hidden bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 max-w-4xl mx-auto">
+          <div id="trackLoginForm" class="max-w-sm mx-auto text-center py-4">
+            <h3 class="font-bold text-2xl text-black mb-2">Admin</h3>
+            <input type="password" id="trackAdminPass" class="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-black outline-none mb-4" placeholder="รหัสผ่าน Admin">
+            <button onclick="loginTrackAdmin()" class="w-full bg-black text-white font-bold py-4 rounded-2xl hover:bg-gray-800 transition shadow-md text-lg">เข้าสู่ระบบ</button>
+          </div>
+          <div id="trackManageForm" class="hidden">
+            <div class="flex justify-between items-center mb-6"><h3 class="font-bold text-xl">จัดการพัสดุ</h3><button onclick="logoutTrackAdmin()" class="text-red-500 font-bold hover:underline text-sm">ออกจากระบบ</button></div>
+            <div class="flex flex-col gap-3 max-w-md mx-auto">
+              <input type="text" id="addName" class="p-3 border-2 border-gray-200 rounded-xl" placeholder="ชื่อลูกค้า">
+              <input type="text" id="addTrack" class="p-3 border-2 border-gray-200 rounded-xl" placeholder="เลขพัสดุ">
+              <input type="text" id="addProd" class="p-3 border-2 border-gray-200 rounded-xl" placeholder="สินค้า">
+              <button onclick="addData()" class="bg-green-500 text-white font-bold py-3 rounded-xl hover:bg-green-600 transition shadow-md">บันทึกข้อมูล</button>
+            </div>
+          </div>
+       </div>
+    </div>
+
+    <div id="privilegeSection" class="section">
+      <h2 class="text-2xl font-bold text-black mb-6">สิทธิพิเศษ</h2>
+      <div class="bg-black text-white p-6 rounded-3xl shadow-lg mb-8 flex items-center gap-5 relative overflow-hidden">
+        <div class="text-5xl drop-shadow-md z-10">💎</div>
+        <div class="z-10"><h3 class="text-lg font-bold tracking-wide">กติกาการสะสมพอยต์</h3><p class="text-sm text-gray-300 mt-1">ยอดสั่งซื้อทุกๆ <span class="text-yellow-400 font-bold text-lg mx-1">200 บาท</span> รับทันที <span class="text-yellow-400 font-bold text-lg mx-1">1 Point</span></p></div>
+      </div>
+    </div>
+
+    <div id="activitiesSection" class="section">
+      <h2 class="text-2xl font-bold text-black mb-4">กิจกรรมพิเศษ</h2>
+      <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center"><span class="text-5xl mb-4 block">🎉</span><h3 class="font-bold text-lg">เร็วๆ นี้</h3></div>
+    </div>
+
+    <div id="profileSection" class="section">
+      <div class="max-w-md mx-auto bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100">
+        <div class="bg-black p-8 text-center relative">
+          <div id="userRank" class="absolute top-4 left-4 text-xs font-bold px-3 py-1 rounded-full text-black bg-white shadow">Rank : </div>
+          <div class="relative inline-block mt-2">
+            <img id="userPic" class="w-28 h-28 rounded-full border-4 border-white object-cover shadow-lg bg-white" src="https://cdn-icons-png.flaticon.com/512/847/847969.png">
+          </div>
+          <h2 id="userNameDisplay" class="text-2xl font-bold text-white tracking-wide mt-4">ชื่อลูกค้า</h2>
+        </div>
+        <div class="p-6 text-center bg-white">
+          <p class="text-gray-500 font-medium">คะแนนคงเหลือ</p>
+          <div class="flex justify-center items-center gap-2 mt-2 mb-6"><div id="userPoints" class="text-5xl font-black text-black">0</div><img src="h-icon.png" class="h-10" onerror="this.style.display='none'"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="rewardsSection" class="section">
+      <h2 class="text-2xl font-bold text-black mb-1">แลกของรางวัล</h2><p class="text-gray-500 text-sm font-medium mb-6">ใช้พอยต์สะสมเพื่อแลกรับสินค้าสุดพิเศษ</p>
+      <div id="rewards-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
+    </div>
+  </div>
+
+  <script>
+    const POINT_API_URL = "https://script.google.com/macros/s/AKfycbzBy1bRIJ0TdkwbsmLY_Y7cXRFYrMGqD98mXWqW0nCrURPV7g4AidxdpJ44nGPb-3Yk/exec"; 
+    const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbzVNx8UdaJFuzdXq4SCPNHoDHWb33-37djx4UBaH2UxwXWNIlEEtRpS3RlgnnuPN7QI/exec";
+    const TRACKING_API_URL = "https://script.google.com/macros/s/AKfycbw49xoUL87wdRfP4dDfPwsZ7Y2yKqT8Gjb5BhhMXxlMDk9Z3fLKe6oGqgy_lG_Z3020/exec";
+    // ⚠️ ถ้าฟิว Deploy GAS ใหม่ อย่าลืมเอาลิงก์มาเปลี่ยนตรงนี้นะ
+    const CHECKOUT_API_URL = "https://script.google.com/macros/s/AKfycbw4AoMbucqAJJ7zJdE5h8o2QFliCz9IBd1cMnBNzdwPDrlKTcQF5YvROOe8n-TpkSbuJQ/exec";
+
+    let currentUserPhone = ''; 
+
+    function initApp() {
+      fetchProducts(); 
+      const savedPhone = localStorage.getItem('hc_phone');
+      const savedPin = localStorage.getItem('hc_pin');
+      if (savedPhone && savedPin) {
+        document.getElementById('loginPhone').value = savedPhone;
+        document.getElementById('loginPin').value = savedPin;
+        loginSystem(true); 
+      }
+      setTimeout(() => { const hash = window.location.hash.substring(1); if (hash && document.getElementById(hash)) navTo(hash); }, 100); 
+    }
+
+    function toggleSidebar() { 
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        if(sidebar.classList.contains('translate-x-[280px]')) {
+            sidebar.classList.remove('translate-x-[280px]');
+            overlay.classList.add('hidden');
+        } else {
+            sidebar.classList.add('translate-x-[280px]');
+            overlay.classList.remove('hidden');
+        }
+    }
+    
+    function navTo(sectionId) {
+      document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+      document.getElementById(sectionId).classList.add('active');
+      const sidebar = document.getElementById('sidebar');
+      if(sidebar.classList.contains('translate-x-[280px]')) toggleSidebar();
+    }
+
+    function switchForm(formType) {
+      document.getElementById('loginError').classList.add('hidden'); document.getElementById('regError').classList.add('hidden');
+      if(formType === 'register') { document.getElementById('formLogin').classList.add('hidden'); document.getElementById('formRegister').classList.remove('hidden'); } 
+      else { document.getElementById('formRegister').classList.add('hidden'); document.getElementById('formLogin').classList.remove('hidden'); }
+    }
+    
+    function openLoginModal() { 
+        const modal = document.getElementById('loginModal');
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+        switchForm('login'); 
+    }
+    function closeLoginModal() { 
+        const modal = document.getElementById('loginModal');
+        modal.classList.add('hidden'); modal.classList.remove('flex');
+    }
+
+    async function loginSystem(isAutoLogin = false) {
+      const phone = document.getElementById('loginPhone').value.trim();
+      const pin = document.getElementById('loginPin').value.trim();
+      if(!phone) return;
+      const btn = document.getElementById('loginBtn'); const errorText = document.getElementById('loginError');
+      if(!isAutoLogin) { btn.innerText = 'กำลังตรวจสอบ...'; btn.disabled = true; errorText.classList.add('hidden'); }
+      
+      try {
+        const response = await fetch(`${POINT_API_URL}?action=login&phone=${phone}&pin=${pin}`);
+        const data = await response.json();
+        if (data.success) {
+          currentUserPhone = data.phone; 
+          localStorage.setItem('hc_phone', phone); localStorage.setItem('hc_pin', pin);
+          closeLoginModal();
+          
+          document.getElementById('navLoginBtn').classList.add('hidden'); 
+          document.getElementById('navUserBtn').classList.remove('hidden');
+          document.getElementById('navPoints').innerText = data.currentPoints;
+          document.getElementById('menuProfile').classList.remove('hidden'); 
+          document.getElementById('menuMyOrders').classList.remove('hidden'); 
+          document.getElementById('menuRewards').classList.remove('hidden'); 
+          document.getElementById('menuLogout').classList.remove('hidden');
+          document.getElementById('userNameDisplay').innerText = data.name; 
+          document.getElementById('userPoints').innerText = data.currentPoints;
+          
+          const rankElement = document.getElementById('userRank');
+          rankElement.innerText = "Rank : " + data.rank.name; rankElement.style.backgroundColor = data.rank.color;
+          if(data.rank.color === '#C0C0C0' || data.rank.color === '#FFD700') rankElement.style.color = '#000'; else rankElement.style.color = '#fff';
+        } else {
+          if(!isAutoLogin) { errorText.innerText = data.message; errorText.classList.remove('hidden'); }
+          else { localStorage.removeItem('hc_phone'); localStorage.removeItem('hc_pin'); }
+        }
+      } catch (error) {} finally { if(!isAutoLogin) { btn.innerText = 'เข้าสู่ระบบ'; btn.disabled = false; } }
+    }
+
+    function logoutSystem() {
+      currentUserPhone = ''; localStorage.removeItem('hc_phone'); localStorage.removeItem('hc_pin'); window.location.reload();
+    }
+    
+    async function registerSystem() {
+      const name = document.getElementById('regName').value.trim(); const phone = document.getElementById('regPhone').value.trim(); const pin = document.getElementById('regPin').value.trim();
+      const errorText = document.getElementById('regError'); const btn = document.getElementById('regBtn');
+      if(!name || !phone || !pin) { errorText.innerText = 'กรุณากรอกข้อมูลให้ครบถ้วนครับ'; errorText.classList.remove('hidden'); return; }
+      if(pin.length !== 4) { errorText.innerText = 'รหัส PIN ต้องเป็นตัวเลข 4 หลักครับ'; errorText.classList.remove('hidden'); return; }
+
+      btn.innerText = 'กำลังสมัคร...'; btn.disabled = true; errorText.classList.add('hidden');
+      try {
+        const response = await fetch(`${POINT_API_URL}?action=register&phone=${phone}&name=${encodeURIComponent(name)}&pin=${pin}`);
+        const data = await response.json();
+        if (data.success) {
+          alert('สมัครสมาชิกเรียบร้อยแล้ว');
+          document.getElementById('loginPhone').value = phone; document.getElementById('loginPin').value = pin;
+          loginSystem();
+        } else { errorText.innerText = data.message; errorText.classList.remove('hidden'); }
+      } catch (error) { errorText.innerText = 'เชื่อมต่อไม่สำเร็จ'; errorText.classList.remove('hidden'); } 
+      finally { btn.innerText = 'ยืนยันการสมัคร'; btn.disabled = false; }
+    }
+
+    let allProducts = []; 
+    async function fetchProducts() {
+      try {
+        const response = await fetch(STOCK_API_URL); allProducts = await response.json(); 
+        document.getElementById('stock-loading').style.display = 'none'; filterStock('ทั้งหมด', document.querySelector('.category-chip'));
+      } catch (error) {}
+    }
+    
+    function filterStock(cat, btnElement) {
+      if(btnElement) { document.querySelectorAll('.category-chip').forEach(el => { el.classList.remove('active'); el.classList.add('inactive'); }); btnElement.classList.remove('inactive'); btnElement.classList.add('active'); }
+      const grid = document.getElementById('product-grid');
+      const filtered = cat === 'ทั้งหมด' ? allProducts : allProducts.filter(i => i.category === cat);
+      if(filtered.length === 0) return grid.innerHTML = '<p class="col-span-full text-center py-8 text-gray-500 font-medium">ไม่มีสินค้าในหมวดหมู่นี้</p>';
+      
+      grid.innerHTML = filtered.map(item => {
+        let imageUrl = item.image ? item.image.trim() : '';
+        const driveMatch = imageUrl.match(/[-\w]{25,}/);
+        if (imageUrl.includes('drive.google.com') && driveMatch) imageUrl = `https://lh3.googleusercontent.com/d/$${driveMatch[0]}`;
+        const isSold = item.Status && item.Status.trim().toUpperCase() === "SOLD";
+        
+        return `
+          <div class="bg-white rounded-2xl shadow-sm flex flex-col border border-gray-100 overflow-hidden group relative">
+            ${isSold ? '<div class="absolute inset-0 bg-black bg-opacity-40 z-10 flex items-center justify-center"><span class="bg-red-600 text-white font-black px-4 py-1 rounded-full tracking-widest rotate-[-10deg] shadow-lg border-2 border-white">SOLD OUT</span></div>' : ''}
+            <img src="${imageUrl}" class="w-full h-48 md:h-56 object-cover ${isSold ? 'grayscale' : 'group-hover:scale-105 transition duration-300'}">
+            <div class="p-4 flex flex-col flex-grow text-left">
+              <h3 class="font-bold text-gray-800 text-sm md:text-base">${item.name}</h3>
+              <p class="text-gray-500 text-xs mt-1 font-medium">Size: ${item.size}</p>
+              <p class="text-black font-black text-lg mt-2 mb-4">฿${item.price}</p>
+              <button onclick="openCheckoutModal('${item.name}', '${item.size}', '${item.price}', '${imageUrl}')" 
+                      class="mt-auto block w-full text-center py-2 rounded-lg font-bold text-sm shadow-md ${isSold ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-black hover:bg-gray-800 text-white transition'}"
+                      ${isSold ? 'disabled' : ''}>
+                ${isSold ? 'สินค้าหมด' : 'สั่งซื้อและชำระเงิน'}
+              </button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    let currentCheckoutPrice = 0;
+
+    function openCheckoutModal(name, size, price, image) {
+      if(!currentUserPhone) {
+          alert('กรุณาเข้าสู่ระบบ หรือสมัครสมาชิกก่อนสั่งซื้อครับ');
+          openLoginModal();
+          return;
+      }
+
+      currentCheckoutPrice = price;
+      document.getElementById('co-name').innerText = name;
+      document.getElementById('co-size').innerText = "Size: " + size;
+      document.getElementById('co-price').innerText = "฿" + price;
+      document.getElementById('co-img').src = image;
+
+      document.getElementById('co-cust-phone').value = currentUserPhone;
+      if(document.getElementById('userNameDisplay')) document.getElementById('co-cust-name').value = document.getElementById('userNameDisplay').innerText;
+
+      document.getElementById('qrcode').innerHTML = `<img src="https://promptpay.io/0845833256/${price}.png" width="150" height="150" style="margin: auto; border-radius: 8px;">`;
+
+      const modal = document.getElementById('checkoutModal');
+      modal.classList.remove('hidden'); modal.classList.add('flex');
+    }
+
+    function closeCheckoutModal() {
+      const modal = document.getElementById('checkoutModal');
+      modal.classList.add('hidden'); modal.classList.remove('flex');
+      document.getElementById('co-slip').value = ""; document.getElementById('co-cust-address').value = ""; document.getElementById('co-cust-zip').value = "";
+    }
+
+    function getBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader(); reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]); reader.onerror = error => reject(error);
+      });
+    }
+
+    async function submitCheckout() {
+      const name = document.getElementById('co-cust-name').value.trim();
+      const phone = document.getElementById('co-cust-phone').value.trim();
+      const address = document.getElementById('co-cust-address').value.trim();
+      const zip = document.getElementById('co-cust-zip').value.trim();
+      const fileInput = document.getElementById('co-slip').files[0];
+      const productName = document.getElementById('co-name').innerText;
+
+      if(!name || !address || !zip) return alert('กรุณากรอกข้อมูลจัดส่งและรหัสไปรษณีย์ให้ครบถ้วนครับ');
+      if(!fileInput) return alert('กรุณาแนบรูปสลิปโอนเงินครับ');
+
+      const btn = document.getElementById('co-submitBtn');
+      btn.innerText = "กำลังอัปโหลด..."; btn.disabled = true;
+
+      try {
+        const base64Image = await getBase64(fileInput);
+        const payload = {
+          name: name, phone: phone, address: address + " รหัสไปรษณีย์: " + zip,
+          price: currentCheckoutPrice, productName: productName,
+          slipBase64: base64Image, mimeType: fileInput.type, filename: fileInput.name
+        };
+
+        const response = await fetch(CHECKOUT_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+        const data = await response.json();
+
+        if (data.status === "success") {
+          alert('✅ ชำระเงินสำเร็จ!\nทางร้านได้รับออเดอร์ของคุณแล้ว ติดตามสถานะได้ที่เมนู "สถานะการสั่งซื้อ"');
+          closeCheckoutModal(); navTo('myOrdersSection'); fetchMyOrders();
+        } else { alert('❌ เกิดข้อผิดพลาด: ' + data.message); }
+      } catch (error) { alert('❌ การเชื่อมต่อขัดข้อง กรุณาลองใหม่อีกครั้ง'); } 
+      finally { btn.innerText = "ยืนยัน"; btn.disabled = false; }
+    }
+
+    async function fetchMyOrders() {
+      const list = document.getElementById('myOrdersList');
+      list.innerHTML = '<div class="text-center py-10 text-gray-400 font-medium">กำลังโหลดข้อมูล...</div>';
+      
+      try {
+        const response = await fetch(CHECKOUT_API_URL, { method: 'POST', body: JSON.stringify({ action: "getMyOrders", phone: currentUserPhone }) });
+        const res = await response.json();
+        
+        if (res.status === "success") {
+          if (res.data.length === 0) {
+            list.innerHTML = '<div class="text-center py-10 bg-white rounded-2xl border border-gray-100 text-gray-400 font-medium shadow-sm">ยังไม่มีประวัติการสั่งซื้อครับ</div>'; return;
+          }
+          
+          list.innerHTML = res.data.map(order => {
+             let statusUI = ''; let rawStatus = order.status ? order.status.trim() : "";
+             if (rawStatus === "รอตรวจสอบยอดเงิน") statusUI = `<span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold flex items-center gap-1"><span class="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></span> กำลังตรวจสอบสลิป</span>`;
+             else if (rawStatus === "ชำระเงินสำเร็จ") statusUI = `<span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold flex items-center gap-1"><span class="w-2 h-2 bg-green-500 rounded-full"></span> ชำระเงินสำเร็จ</span>`;
+             else if (rawStatus === "ชำระเงินไม่สำเร็จ") statusUI = `<span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold flex items-center gap-1"><span class="w-2 h-2 bg-red-500 rounded-full"></span> ชำระเงินไม่สำเร็จ</span>`;
+             else statusUI = `<span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold">${rawStatus}</span>`;
+
+             return `<div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-2 hover:shadow-md transition">
+                <div class="flex justify-between items-start mb-1"><div class="font-bold text-gray-800 text-base md:text-lg">${order.productName || "สั่งซื้อสินค้า"}</div>${statusUI}</div>
+                <div class="flex justify-between items-end"><div class="text-xs text-gray-400">วันที่: ${new Date(order.date).toLocaleString('th-TH')}</div><div class="text-black font-black text-xl">฿${order.price}</div></div>
+             </div>`;
+          }).join('');
+        }
+      } catch (error) { list.innerHTML = '<div class="text-center py-10 text-red-500 font-bold">เกิดข้อผิดพลาดในการดึงข้อมูล</div>'; }
+    }
+
+    // ================= Tracking แอดมิน =================
+    function toggleTrackMode() {
+      const custBox = document.getElementById('trackCustomerBox'); const adminBox = document.getElementById('trackAdminBox'); const btn = document.getElementById('modeTrackBtn');
+      if(custBox.classList.contains('hidden')) { custBox.classList.remove('hidden'); adminBox.classList.add('hidden'); btn.innerText = 'Admin Login'; btn.classList.replace('bg-black', 'bg-gray-200'); btn.classList.replace('text-white', 'text-gray-700'); } 
+      else { custBox.classList.add('hidden'); adminBox.classList.remove('hidden'); btn.innerText = 'กลับไปหน้าค้นหา'; btn.classList.replace('bg-gray-200', 'bg-black'); btn.classList.replace('text-gray-700', 'text-white'); }
+    }
+
+    async function searchParcel() {
+      const input = document.getElementById('trackInput').value.trim();
+      const resultDiv = document.getElementById('trackResult');
+      const btn = document.getElementById('trackBtn');
+      if (!input) return alert('กรุณาใส่ชื่อหรือเบอร์โทรเพื่อค้นหาครับ');
+      
+      btn.innerText = 'กำลังค้นหา...'; btn.disabled = true;
+      resultDiv.classList.remove('hidden');
+      resultDiv.innerHTML = '<div class="text-center py-6 text-gray-500 font-medium animate-pulse">กำลังค้นหาข้อมูลพัสดุ...</div>';
+      
+      try {
+        const response = await fetch(`${TRACKING_API_URL}?action=search&name=${encodeURIComponent(input)}`);
+        const rawText = await response.text(); 
+        const data = JSON.parse(rawText);
+        
+        if (data.status === 'success' && data.data.length > 0) {
+          resultDiv.innerHTML = data.data.map(item => `
+            <div class="bg-gray-50 p-6 rounded-2xl border border-gray-200 text-left relative overflow-hidden flex flex-col gap-4">
+              <div class="flex justify-between items-start">
+                <div>
+                  <div class="flex items-center gap-3 mb-1">
+                    <span class="font-bold text-black text-xl">${item.name}</span>
+                    <span class="text-xs px-3 py-1 bg-green-100 text-green-700 rounded-full font-bold shadow-sm">จัดส่งแล้ว</span>
+                  </div>
+                  <div class="text-sm text-gray-500">สินค้า: <span class="font-bold text-gray-800">${item.product}</span></div>
+                </div>
+              </div>
+              <div class="bg-white p-4 rounded-xl border border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-2">
+                <div>
+                  <div class="text-xs text-gray-500 mb-1">เลขพัสดุ</div>
+                  <div class="font-black text-black text-xl tracking-wider">${item.tracking}</div>
+                </div>
+                <button onclick="openTimelinePopup('${item.tracking}')" class="bg-black hover:bg-gray-800 text-white px-5 py-3 rounded-xl text-sm font-bold transition shadow-sm border border-black flex items-center justify-center gap-2 w-full sm:w-auto">
+                  🚀 เช็คสถานะพัสดุ
+                </button>
+              </div>
+              <div class="text-center"><span class="text-[10px] text-gray-400 uppercase tracking-widest">Update: ${item.date}</span></div>
+            </div>
+          `).join('');
+        } else {
+          resultDiv.innerHTML = '<div class="text-center py-6 bg-red-50 text-red-500 rounded-2xl border border-red-100 font-bold">❌ ไม่พบข้อมูลพัสดุ</div>';
+        }
+      } catch (error) { 
+        resultDiv.innerHTML = '<div class="text-center py-4 text-red-500 font-bold">เกิดข้อผิดพลาดในการดึงข้อมูล</div>'; 
+      }
+      btn.innerText = 'ค้นหา'; btn.disabled = false;
+    }
+
+    function openTimelinePopup(trackingNumber) {
+        let url = ''; let tracking = trackingNumber.trim().toUpperCase(); 
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        const isInApp = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1) || (ua.indexOf("Line") > -1);
+        const thaiPostRegex = /^[A-Z]{2}\d{9}[A-Z]{2}$/;
+
+        if (thaiPostRegex.test(tracking)) {
+            const el = document.createElement('textarea'); el.value = tracking; document.body.appendChild(el); el.select();
+            try { document.execCommand('copy'); alert('คัดลอกเลขพัสดุ: ' + tracking + ' เรียบร้อย! 📦\nระบบกำลังพาไปเว็บไปรษณีย์ไทย ให้คุณกด "วาง" (Paste) ในช่องค้นหาได้เลยครับ'); } 
+            catch (e) { alert('กรุณาคัดลอกเลขพัสดุนี้: ' + tracking + ' เพื่อไปวางในเว็บไปรษณีย์ไทยครับ'); }
+            document.body.removeChild(el); url = 'https://track.thailandpost.co.th/';
+            setTimeout(() => { if (isInApp) { window.location.href = url; } else { window.open(url, '_blank'); } }, 1000);
+            return; 
+        }
+
+        url = 'https://www.flashexpress.co.th/tracking/?se=' + tracking;
+        if (isInApp) { window.location.href = url; } 
+        else { const width = 420; const height = 700; const left = (window.screen.width - width) / 2; const top = (window.screen.height - height) / 2; window.open(url, 'TrackingTimeline', `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`); }
+    }
+
+    function loginTrackAdmin() {
+      const pass = document.getElementById('trackAdminPass').value;
+      fetch(`${TRACKING_API_URL}?action=login&pass=${pass}`).then(res => res.text()).then(text => {
+          const data = JSON.parse(text);
+          if(data.status == 'success') {
+              document.getElementById('trackLoginForm').classList.add('hidden'); document.getElementById('trackManageForm').classList.remove('hidden');
+          } else { alert('รหัสผ่านแอดมินไม่ถูกต้อง'); }
+      });
+    }
+
+    function logoutTrackAdmin() {
+      document.getElementById('trackAdminPass').value = ''; document.getElementById('trackManageForm').classList.add('hidden'); document.getElementById('trackLoginForm').classList.remove('hidden');
+    }
+
+    function addData() {
+        let n = document.getElementById('addName').value; let t = document.getElementById('addTrack').value; let p = document.getElementById('addProd').value; let pass = document.getElementById('trackAdminPass').value;
+        if(!n || !t) return alert('กรุณากรอกชื่อและเลขพัสดุ');
+        
+        fetch(`${TRACKING_API_URL}?action=add&name=${n}&track=${t}&prod=${p}&pass=${pass}`).then(res => res.text()).then(text => {
+           const data = JSON.parse(text);
+           alert(data.msg);
+           if(data.status === 'success'){ document.getElementById('addName').value = ""; document.getElementById('addTrack').value = ""; document.getElementById('addProd').value = ""; }
+        });
+    }
+  </script>
+</body>
+</html>        <div class="text-left mb-4">
           <label class="block text-sm font-bold text-gray-700 mb-2">เบอร์โทรศัพท์มือถือ</label>
           <input type="text" id="loginPhone" class="w-full p-4 border-2 border-gray-200 rounded-2xl font-bold text-lg text-center focus:border-black outline-none transition" placeholder="08X-XXX-XXXX">
         </div>
