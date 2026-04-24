@@ -216,33 +216,43 @@
       </div>
 
       <div id="trackingSection" class="section">
-         <div class="mb-6 flex justify-between items-center">
-            <h2 class="text-2xl font-bold">ตรวจสอบพัสดุ</h2>
-            <button onclick="toggleTrackMode()" id="modeTrackBtn" class="bg-gray-200 px-4 py-2 rounded-full text-xs font-bold">Admin Login</button>
-         </div>
-         <div id="trackCustomerBox" class="bg-white p-6 rounded-3xl border border-gray-100 max-w-2xl mx-auto">
-            <div class="flex flex-col sm:flex-row gap-3">
-              <input type="text" id="trackInput" class="flex-grow p-4 border-2 rounded-2xl font-bold text-center" placeholder="ค้นหาด้วย ชื่อ หรือ เบอร์โทร">
-              <button onclick="searchParcel()" id="trackBtn" class="bg-black text-white font-bold py-4 px-8 rounded-2xl">ค้นหา</button>
+        <div class="mb-6 flex justify-between items-center">
+          <div>
+            <h2 class="text-2xl font-bold text-black">ตรวจสอบพัสดุ</h2>
+            <p class="text-gray-500 text-sm font-medium">ระบบจัดส่ง HighClass Tracking</p>
+          </div>
+          <button onclick="toggleTrackMode()" id="modeTrackBtn" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-xs font-bold hover:bg-black hover:text-white transition shadow-sm">Admin Login</button>
+        </div>
+        
+        <div id="trackCustomerBox" class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 max-w-2xl mx-auto">
+          <div class="flex flex-col sm:flex-row gap-3">
+            <input type="text" id="trackInput" class="flex-grow p-4 border-2 border-gray-200 rounded-2xl font-bold text-center sm:text-left focus:border-black focus:outline-none transition text-lg" placeholder="ค้นหาด้วย ชื่อ หรือ เบอร์โทร">
+            <button onclick="searchParcel()" id="trackBtn" class="bg-black text-white font-bold py-4 px-8 rounded-2xl hover:bg-gray-800 transition shadow-md text-lg whitespace-nowrap">ค้นหา</button>
+          </div>
+          <div id="trackResult" class="mt-8 hidden flex-col gap-3"></div>
+        </div>
+
+        <div id="trackAdminBox" class="hidden bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 max-w-4xl mx-auto">
+          <div id="trackLoginForm" class="max-w-sm mx-auto text-center py-4">
+            <h3 class="font-bold text-2xl text-black mb-2 tracking-wide">Admin</h3>
+            <p class="text-sm text-gray-500 mb-6">เข้าสู่ระบบจัดการเลขพัสดุ</p>
+            <input type="password" id="trackAdminPass" class="w-full p-4 border-2 border-gray-200 rounded-2xl font-bold text-center focus:border-black focus:outline-none mb-4" placeholder="รหัสผ่าน Admin">
+            <button onclick="loginTrackAdmin()" class="w-full bg-black text-white font-bold py-4 rounded-2xl hover:bg-gray-800 transition shadow-md text-lg">เข้าสู่ระบบ</button>
+          </div>
+
+          <div id="trackManageForm" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+               <h3 class="font-bold text-xl text-black">จัดการพัสดุ</h3>
+               <button onclick="logoutTrackAdmin()" class="text-red-500 font-bold hover:underline text-sm px-3 py-1 bg-red-50 rounded-lg">ออกจากระบบ</button>
             </div>
-            <div id="trackResult" class="mt-8 hidden flex-col gap-3"></div>
-         </div>
-         <div id="trackAdminBox" class="hidden">
-            <div id="trackLoginForm" class="max-w-sm mx-auto text-center py-4 bg-white p-6 rounded-3xl">
-              <h3 class="font-bold text-2xl mb-4">Admin</h3>
-              <input type="password" id="trackAdminPass" class="w-full p-4 border-2 rounded-2xl mb-4" placeholder="รหัสผ่าน Admin">
-              <button onclick="loginTrackAdmin()" class="w-full bg-black text-white font-bold py-4 rounded-2xl">เข้าสู่ระบบ</button>
+            <div class="flex flex-col gap-3 max-w-md mx-auto">
+              <input type="text" id="addName" class="p-3 border-2 border-gray-200 rounded-xl" placeholder="ชื่อลูกค้า">
+              <input type="text" id="addTrack" class="p-3 border-2 border-gray-200 rounded-xl" placeholder="เลขพัสดุ">
+              <input type="text" id="addProd" class="p-3 border-2 border-gray-200 rounded-xl" placeholder="สินค้า">
+              <button onclick="addData()" class="bg-green-500 text-white font-bold py-3 rounded-xl hover:bg-green-600 transition shadow-md">บันทึกข้อมูล</button>
             </div>
-            <div id="trackManageForm" class="hidden bg-white p-6 rounded-3xl">
-              <div class="flex justify-between items-center mb-6"><h3 class="font-bold text-xl">จัดการพัสดุ</h3><button onclick="logoutTrackAdmin()" class="text-red-500 font-bold">ออกจากระบบ</button></div>
-              <div class="flex flex-col gap-3">
-                <input type="text" id="addName" class="p-3 border-2 rounded-xl" placeholder="ชื่อลูกค้า">
-                <input type="text" id="addTrack" class="p-3 border-2 rounded-xl" placeholder="เลขพัสดุ">
-                <input type="text" id="addProd" class="p-3 border-2 rounded-xl" placeholder="สินค้า">
-                <button onclick="addData()" class="bg-green-500 text-white font-bold py-3 rounded-xl">บันทึกข้อมูล</button>
-              </div>
-            </div>
-         </div>
+          </div>
+        </div>
       </div>
 
        <div id="privilegeSection" class="section">
@@ -651,35 +661,139 @@
     }
 
     function toggleTrackMode() {
-      document.getElementById('trackCustomerBox').classList.toggle('hidden');
-      document.getElementById('trackAdminBox').classList.toggle('hidden');
+      const custBox = document.getElementById('trackCustomerBox');
+      const adminBox = document.getElementById('trackAdminBox');
+      const btn = document.getElementById('modeTrackBtn');
+      if(custBox.classList.contains('hidden')) {
+        custBox.classList.remove('hidden'); adminBox.classList.add('hidden');
+        btn.innerText = 'Admin Login'; btn.classList.replace('bg-black', 'bg-gray-200'); btn.classList.replace('text-white', 'text-gray-700');
+      } else {
+        custBox.classList.add('hidden'); adminBox.classList.remove('hidden');
+        btn.innerText = 'กลับไปหน้าค้นหา'; btn.classList.replace('bg-gray-200', 'bg-black'); btn.classList.replace('text-gray-700', 'text-white');
+      }
     }
 
     async function searchParcel() {
-      const i = document.getElementById('trackInput').value;
-      if(!i) return alert("กรุณาใส่ชื่อหรือเบอร์โทร");
+      const input = document.getElementById('trackInput').value.trim();
+      const resultDiv = document.getElementById('trackResult');
+      const btn = document.getElementById('trackBtn');
+      if (!input) return alert('กรุณาใส่ชื่อเพื่อค้นหาครับ');
+      
+      btn.innerText = 'กำลังค้นหา...'; btn.disabled = true;
+      resultDiv.classList.remove('hidden');
+      resultDiv.innerHTML = '<div class="text-center py-6 text-gray-500 font-medium animate-pulse">กำลังค้นหาข้อมูลพัสดุ...</div>';
+      
       try {
-        const res = await fetch(`${TRACKING_API_URL}?action=search&name=${encodeURIComponent(i)}`);
-        const d = await res.json();
-        if(d.status === 'success' && d.data.length > 0) {
-          document.getElementById('trackResult').classList.remove('hidden');
-          document.getElementById('trackResult').innerHTML = d.data.map(t => `<div class="bg-gray-50 p-4 rounded-xl border"><b>${t.name}</b><br>เลขพัสดุ: ${t.tracking}<br>สินค้า: ${t.product}</div>`).join('');
-        } else { alert("ไม่พบข้อมูล"); }
-      } catch(e){}
+        const response = await fetch(`${TRACKING_API_URL}?action=search&name=${encodeURIComponent(input)}`);
+        const rawText = await response.text(); 
+        const data = JSON.parse(rawText);
+        
+        if (data.status === 'success' && data.data.length > 0) {
+          resultDiv.innerHTML = data.data.map(item => `
+            <div class="bg-gray-50 p-6 rounded-2xl border border-gray-200 text-left relative overflow-hidden flex flex-col gap-4">
+              <div class="flex justify-between items-start">
+                <div>
+                  <div class="flex items-center gap-3 mb-1">
+                    <span class="font-bold text-black text-xl">${item.name}</span>
+                    <span class="text-xs px-3 py-1 bg-green-100 text-green-700 rounded-full font-bold shadow-sm">จัดส่งแล้ว</span>
+                  </div>
+                  <div class="text-sm text-gray-500">สินค้า: <span class="font-bold text-gray-800">${item.product}</span></div>
+                </div>
+              </div>
+              
+              <div class="bg-white p-4 rounded-xl border border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-2">
+                <div>
+                  <div class="text-xs text-gray-500 mb-1">เลขพัสดุ</div>
+                  <div class="font-black text-black text-xl tracking-wider">${item.tracking}</div>
+                </div>
+                
+                <button onclick="openTimelinePopup('${item.tracking}')" class="bg-black hover:bg-gray-800 text-white px-5 py-3 rounded-xl text-sm font-bold transition shadow-sm border border-black flex items-center justify-center gap-2 w-full sm:w-auto">
+                  🚀 เช็คสถานะพัสดุ
+                </button>
+              </div>
+              <div class="text-center"><span class="text-[10px] text-gray-400 uppercase tracking-widest">Update: ${item.date || new Date().toLocaleDateString('th-TH')}</span></div>
+            </div>
+          `).join('');
+        } else {
+          resultDiv.innerHTML = '<div class="text-center py-6 bg-red-50 text-red-500 rounded-2xl border border-red-100 font-bold">❌ ไม่พบข้อมูลพัสดุ</div>';
+        }
+      } catch (error) { 
+        resultDiv.innerHTML = '<div class="text-center py-4 text-red-500 font-bold">เกิดข้อผิดพลาดในการดึงข้อมูล</div>'; 
+      }
+      btn.innerText = 'ค้นหา'; btn.disabled = false;
+    }
+
+    function openTimelinePopup(trackingNumber) {
+        let url = '';
+        let tracking = trackingNumber.trim().toUpperCase(); 
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        const isInApp = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1) || (ua.indexOf("Line") > -1);
+        
+        const thaiPostRegex = /^[A-Z]{2}\d{9}[A-Z]{2}$/;
+
+        if (thaiPostRegex.test(tracking)) {
+            const el = document.createElement('textarea');
+            el.value = tracking;
+            document.body.appendChild(el);
+            el.select();
+            try {
+                document.execCommand('copy');
+                alert('คัดลอกเลขพัสดุ: ' + tracking + ' เรียบร้อย! 📦\\n\\nระบบกำลังพาไปเว็บไปรษณีย์ไทย ให้คุณกด "วาง" (Paste) ในช่องค้นหาได้เลยครับ');
+            } catch (e) {
+                alert('กรุณาคัดลอกเลขพัสดุนี้: ' + tracking + ' เพื่อไปวางในเว็บไปรษณีย์ไทยครับ');
+            }
+            document.body.removeChild(el);
+            url = 'https://track.thailandpost.co.th/';
+            if (isInApp) { window.location.href = url; } else { window.open(url, '_blank'); }
+            return; 
+        }
+
+        url = 'https://www.flashexpress.co.th/tracking/?se=' + tracking;
+        if (isInApp) {
+            window.location.href = url;
+        } else {
+            const width = 420; const height = 700;
+            const left = (window.screen.width - width) / 2; const top = (window.screen.height - height) / 2;
+            window.open(url, 'TrackingTimeline', `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`);
+        }
     }
 
     function loginTrackAdmin() {
-      const p = document.getElementById('trackAdminPass').value;
-      fetch(`${TRACKING_API_URL}?action=login&pass=${p}`).then(r => r.json()).then(d => {
-          if(d.status == 'success') { document.getElementById('trackLoginForm').classList.add('hidden'); document.getElementById('trackManageForm').classList.remove('hidden'); }
-      });
+      const pass = document.getElementById('trackAdminPass').value;
+      fetch(`${TRACKING_API_URL}?action=login&pass=${pass}`)
+          .then(res => res.text())
+          .then(text => {
+              const data = JSON.parse(text);
+              if(data.status == 'success') {
+                  document.getElementById('trackLoginForm').classList.add('hidden');
+                  document.getElementById('trackManageForm').classList.remove('hidden');
+              } else { alert("รหัสผิด"); }
+          });
+    }
+
+    function logoutTrackAdmin() {
+      document.getElementById('trackAdminPass').value = '';
+      document.getElementById('trackManageForm').classList.add('hidden');
+      document.getElementById('trackLoginForm').classList.remove('hidden');
     }
 
     function addData() {
-        const n = document.getElementById('addName').value, t = document.getElementById('addTrack').value, p = document.getElementById('addProd').value, pass = document.getElementById('trackAdminPass').value;
-        fetch(`${TRACKING_API_URL}?action=add&name=${n}&track=${t}&prod=${p}&pass=${pass}`).then(r => r.json()).then(d => {
-           alert(d.msg); if(d.status === 'success') window.location.reload();
-        });
+        let n = document.getElementById('addName').value;
+        let t = document.getElementById('addTrack').value;
+        let p = document.getElementById('addProd').value;
+        let pass = document.getElementById('trackAdminPass').value;
+        
+        fetch(`${TRACKING_API_URL}?action=add&name=${n}&track=${t}&prod=${p}&pass=${pass}`)
+            .then(res => res.text())
+            .then(text => {
+               const data = JSON.parse(text);
+               alert(data.msg);
+               if(data.status === 'success'){
+                    document.getElementById('addName').value = "";
+                    document.getElementById('addTrack').value = "";
+                    document.getElementById('addProd').value = "";
+               }
+            });
     }
   </script>
 </body>
