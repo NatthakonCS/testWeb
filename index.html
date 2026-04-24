@@ -436,7 +436,7 @@
     async function fetchProducts() {
       try {
         const res = await fetch(STOCK_API_URL); allProducts = await res.json(); 
-        document.getElementById('stock-loading').style.display = 'none'; filterStock('ทั้งหมด', document.querySelector('.category-chip'));
+        document.getElementById('stock-loading').style.display = 'none'; tock('ทั้งหมด', document.querySelector('.category-chip'));
       } catch(e){}
     }
     
@@ -444,15 +444,16 @@
       if(btn) { document.querySelectorAll('.category-chip').forEach(el => { el.classList.remove('active'); el.classList.add('inactive'); }); btn.classList.remove('inactive'); btn.classList.add('active'); }
       const grid = document.getElementById('product-grid');
       
-      // ดักจับ Category ให้ครอบคลุมตัวพิมพ์เล็ก/ใหญ่
       const filtered = cat === 'ทั้งหมด' ? allProducts : allProducts.filter(i => (i.category || i.Category || "").trim() === cat);
       
       grid.innerHTML = filtered.map(item => {
         const itemStatus = (item.Status || item.status || "").trim().toUpperCase();
         const isSold = itemStatus === "SOLD";
         
-        // 🚨 ดึง URL รูปตรงๆ จาก API เลย (ดักตัวพิมพ์เล็ก/ใหญ่ของชื่อคอลัมน์) โดยไม่ต้องแปลงลิงก์ซ้ำ!
-        const finalImg = (item.image || item.Image || item.IMAGE || "").trim();
+        // 🚨 แก้ปัญหาลิงก์รูปพัง: ลบวงเล็บก้ามปู [ ] และเครื่องหมายคำพูดที่แถมมาจาก Sheets ทิ้งให้หมด
+        let finalImg = (item.image || item.Image || item.IMAGE || "").toString().trim();
+        finalImg = finalImg.replace(/[\[\]"']/g, ''); 
+        
         const itemName = item.name || item.Name || "ไม่มีชื่อสินค้า";
         const itemSize = item.size || item.Size || "-";
         const itemPrice = item.price || item.Price || 0;
