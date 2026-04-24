@@ -255,7 +255,6 @@
         <h3 class="text-xl font-bold text-black mb-4">ระดับสมาชิก (Rank) และสิทธิพิเศษ</h3>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          
           <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-3 hover:shadow-md transition">
             <div class="flex items-center gap-4 border-b border-gray-50 pb-3">
               <img src="rank1.png" class="w-16 h-16 rounded-full object-cover shadow-sm border-2 border-gray-100 flex-shrink-0 bg-white" alt="Rank 1">
@@ -295,11 +294,10 @@
               <div><div class="font-bold text-gray-800 text-lg">ผู้สนับสนุนรายใหญ่</div><div class="text-sm font-medium text-gray-500">สะสม 9 - 10+ Point</div></div>
             </div>
             <ul class="text-sm text-gray-600 space-y-1.5 pl-1">
-              <li class="flex items-start gap-2"><span class="text-[#00B900] text-lg leading-none">★</span> <strong class="text-red-500">สิทธิ์จัดส่งฟรี! 3ออเดอร์/เดือน</strong></li>
+              <li class="flex items-start gap-2"><span class="text-[#00B900] text-lg leading-none">★</span> <strong class="text-red-500">สิทธิ์จัดส่งฟรี! 3 ออเดอร์/เดือน</strong></li>
               <li class="flex items-start gap-2"><span class="text-[#00B900]">✔</span> บริการดูแลระดับ VIP ลูกค้าคนสำคัญ</li>
             </ul>
           </div>
-
         </div>
       </div>
 
@@ -312,7 +310,7 @@
             <div class="p-6">
               <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold uppercase tracking-wider">Coming Soon</span>
               <h3 class="text-xl font-bold text-black mt-3">HighClass Photo Contest</h3>
-              <p class="text-gray-500 text-sm mt-2">ถ่ายรูปคู่กับเสื้อวินเทจจากร้านเรา รับทันที 0.5 High Point!</p>
+              <p class="text-gray-500 text-sm mt-2">ถ่ายรูปคู่กับเสื้อวินเทจจากร้านเรา รับทันที 5 High Point!</p>
               <button disabled class="mt-5 w-full bg-gray-100 text-gray-400 py-3 rounded-xl font-bold cursor-not-allowed">ยังไม่เปิดใช้งาน</button>
             </div>
           </div>
@@ -326,16 +324,25 @@
           <img id="userPic" class="w-28 h-28 mx-auto rounded-full border-4 border-gray-100 object-cover shadow-lg bg-white" src="https://cdn-icons-png.flaticon.com/512/847/847969.png">
           <h2 id="userNameDisplay" class="text-2xl font-bold mt-4">ชื่อลูกค้า</h2>
           <p class="text-gray-500 font-medium mt-4">คะแนนคงเหลือ</p>
-          <div class="flex justify-center items-center gap-2 mt-1 mb-2"><div id="userPoints" class="text-5xl font-black">0</div><img src="h-icon.png" class="h-8" onerror="this.style.display='none'"></div>
+          <div class="flex justify-center items-center gap-2 mt-1 mb-4"><div id="userPoints" class="text-5xl font-black">0</div><img src="h-icon.png" class="h-8" onerror="this.style.display='none'"></div>
+          
+          <div class="bg-gray-50 p-4 rounded-xl text-sm text-left border border-gray-100">
+            <p class="font-bold text-gray-800 mb-2">🎁 สิทธิพิเศษของคุณ:</p>
+            <ul id="rankPrivilegeList" class="space-y-1 text-gray-600">
+              <li>กำลังตรวจสอบสิทธิพิเศษ...</li>
+            </ul>
+          </div>
         </div>
       </div>
+
     </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
     const POINT_API_URL = "https://script.google.com/macros/s/AKfycbwp_iMNxd7BvTv0CAoitnvV3DVmliWkGiQhxRoz3nZXI5A894X21hb_rXtXLsvCI9Wq/exec"; 
-    const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbxZT8ysjcJTWSb3Ny3YDHenggGfU5ysUWdj_NNsQEm-vKVT6KqEEygZemf7uEZydVk/exec";
+    // 🚨 อัปเดต URL ของสต็อกเป็นตัวใหม่ล่าสุดที่ฟิวส่งมาให้
+    const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbzCr-SnOf9m1OH6TpBvWKVs2pyQZOHHQRLqh0xlWAga8ZZE2XYTIoVNp-fa3mjMZA5k/exec";
     const TRACKING_API_URL = "https://script.google.com/macros/s/AKfycbw49xoUL87wdRfP4dDfPwsZ7Y2yKqT8Gjb5BhhMXxlMDk9Z3fLKe6oGqgy_lG_Z3020/exec";
     const CHECKOUT_API_URL = "https://script.google.com/macros/s/AKfycbyT00b5c6ng25Br5IEHe2WtCn-BKMwJry_sMU4oMJwVpFfaS_Fg9m2tQcGDU2GgdKI83Q/exec";
 
@@ -410,6 +417,13 @@
           document.getElementById('userRank').innerText = "Rank : " + d.rank.name; 
           document.getElementById('userRank').style.backgroundColor = d.rank.color;
           if(d.rank.color === '#C0C0C0' || d.rank.color === '#FFD700') document.getElementById('userRank').style.color = '#000'; else document.getElementById('userRank').style.color = '#fff';
+          
+          let privileges = "";
+          if (d.rank.name === 'ผู้ผ่านทาง') privileges = "<li class='flex items-start gap-2'><span class='text-[#00B900]'>✔</span> เริ่มต้นสะสมพอยต์เพื่อแลกของรางวัล</li>";
+          else if (d.rank.name === 'เสื้อผ้าร้านนี้แอบเลิศ') privileges = "<li class='flex items-start gap-2'><span class='text-[#00B900]'>✔</span> ใช้พอยต์แลกของรางวัลได้</li><li class='flex items-start gap-2'><span class='text-[#00B900]'>✔</span> ส่วนลดค่าส่ง 10 บาท (1 ครั้ง/เดือน)</li>";
+          else if (d.rank.name === 'ลูกค้าประจำ') privileges = "<li class='flex items-start gap-2'><span class='text-[#00B900]'>✔</span> สิทธิ์ทักจองสินค้าหลุดจองก่อนใคร</li><li class='flex items-start gap-2'><span class='text-[#00B900]'>✔</span> ส่วนลดค่าส่ง 20 บาท (2 ครั้ง/เดือน)</li>";
+          else if (d.rank.name === 'ผู้สนับสนุนรายใหญ่') privileges = "<li class='flex items-start gap-2'><span class='text-red-500 font-bold'>★</span> <strong class='text-red-500'>จัดส่งฟรี! 3 ออเดอร์/เดือน</strong></li><li class='flex items-start gap-2'><span class='text-[#00B900]'>✔</span> บริการดูแลระดับ VIP</li>";
+          if(document.getElementById('rankPrivilegeList')) document.getElementById('rankPrivilegeList').innerHTML = privileges;
         }
       } catch(e){}
     }
@@ -463,13 +477,16 @@
     let curP = 0;
     function openCheckoutModal(n, s, p, img) {
       if(!currentUserPhone) { alert("กรุณาเข้าสู่ระบบก่อนครับ"); openLoginModal(); return; }
-      curP = p;
+      
+      // 🚨 บังคับบวกค่าส่ง 40 บาทเข้าไปในยอดรวม
+      curP = parseInt(p) + 40; 
+
       document.getElementById('co-name').innerText = n;
       document.getElementById('co-size').innerText = "Size: " + s;
-      document.getElementById('co-price').innerText = "฿" + p;
+      document.getElementById('co-price').innerText = "฿" + p + " + ค่าส่ง ฿40 = ยอดโอน ฿" + curP; 
       document.getElementById('co-checkout-img').src = img;
       document.getElementById('co-cust-phone').value = currentUserPhone;
-      document.getElementById('qrcode').innerHTML = `<img src="https://promptpay.io/0845833256/${p}.png" width="150" style="margin:auto; border-radius:8px;">`;
+      document.getElementById('qrcode').innerHTML = `<img src="https://promptpay.io/0845833256/${curP}.png" width="150" style="margin:auto; border-radius:8px;">`;
       document.getElementById('checkoutModal').classList.add('active');
     }
 
@@ -488,32 +505,46 @@
       reader.readAsDataURL(file);
       reader.onload = async () => {
         const base64 = reader.result.split(',')[1];
+        const productName = document.getElementById('co-name').innerText;
         const payload = {
           name, phone: currentUserPhone, address: addr,
-          price: curP, productName: document.getElementById('co-name').innerText,
+          price: curP, productName: productName,
           slipBase64: base64, mimeType: file.type, filename: file.name
         };
         try {
           const res = await fetch(CHECKOUT_API_URL, { method: 'POST', body: JSON.stringify(payload) });
           const d = await res.json();
-          if(d.status === "success") { alert("ชำระเงินสำเร็จ!"); closeCheckoutModal(); navTo('myOrdersSection'); fetchMyOrders(); }
+          if(d.status === "success") { 
+            // 🚨 สั่งยิงข้อมูลไปล็อกสินค้าเป็น SOLD ในชีตสต็อกทันทีที่ลูกค้ากดสั่งซื้อสำเร็จ
+            fetch(STOCK_API_URL, { method: 'POST', body: JSON.stringify({ action: "markSold", productName: productName }) });
+            
+            alert("ชำระเงินสำเร็จ!"); closeCheckoutModal(); navTo('myOrdersSection'); fetchMyOrders(); 
+          }
         } catch(e) { alert("เกิดข้อผิดพลาด"); }
         finally { btn.innerText = "ยืนยันการชำระเงิน"; btn.disabled = false; }
       };
     }
 
     async function fetchMyOrders() {
+      const list = document.getElementById('myOrdersList');
+      list.innerHTML = '<div class="text-center py-10 text-gray-400 font-medium">กำลังโหลดข้อมูล...</div>';
       try {
         const res = await fetch(CHECKOUT_API_URL, { method: 'POST', body: JSON.stringify({ action: "getMyOrders", phone: currentUserPhone }) });
         const d = await res.json();
-        if(d.status === "success" && d.data.length > 0) {
-          document.getElementById('myOrdersList').innerHTML = d.data.map(o => `
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center">
-              <div><div class="font-bold">${o.productName}</div><div class="text-xs text-gray-400">${new Date(o.date).toLocaleString('th-TH')}</div></div>
-              <div class="text-right"><div class="font-black">฿${o.price}</div><div class="text-xs font-bold text-gray-500">${o.status}</div></div>
-            </div>`).join('');
+        if(d.status === "success") {
+          if (d.data.length === 0) {
+             list.innerHTML = '<div class="bg-white p-10 rounded-3xl border border-gray-100 shadow-sm text-center"><span class="text-5xl block mb-3">🛒</span><p class="text-gray-800 font-bold text-lg">ยังไม่มีประวัติการสั่งซื้อ</p><p class="text-gray-400 text-sm mt-1">ไปเลือกดูสินค้าสวยๆ ในร้านกันเลยครับ!</p></div>';
+          } else {
+             list.innerHTML = d.data.map(o => `
+              <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center">
+                <div><div class="font-bold">${o.productName}</div><div class="text-xs text-gray-400">${new Date(o.date).toLocaleString('th-TH')}</div></div>
+                <div class="text-right"><div class="font-black">฿${o.price}</div><div class="text-xs font-bold text-gray-500">${o.status}</div></div>
+              </div>`).join('');
+          }
         }
-      } catch(e){}
+      } catch(e) {
+         list.innerHTML = '<div class="text-center py-10 text-red-500 font-medium">เกิดข้อผิดพลาดในการดึงข้อมูล</div>';
+      }
     }
 
     function toggleTrackMode() {
