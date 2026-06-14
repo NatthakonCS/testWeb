@@ -538,15 +538,28 @@
     function filterStock(cat, btn) {
       if(btn) { document.querySelectorAll('.category-chip').forEach(el => { el.classList.remove('active'); el.classList.add('inactive'); }); btn.classList.remove('inactive'); btn.classList.add('active'); }
       const grid = document.getElementById('product-grid');
-      const filtered = cat === 'ทั้งหมด' ? allProducts : allProducts.filter(i => (i.category || i.Category || "").trim() === cat);
+      
+      // ดึงข้อมูลมา โดยถ้าเป็นหน้า 'ทั้งหมด' ให้ก็อปปี้ข้อมูลมาเพื่อไม่ให้กระทบข้อมูลหลักตอนจัดเรียง
+      let filtered = cat === 'ทั้งหมด' ? [...allProducts] : allProducts.filter(i => (i.category || i.Category || "").trim() === cat);
+      
       if(filtered.length === 0) { 
         grid.innerHTML = '<p class="col-span-full text-center py-8 text-gray-500 font-medium">ไม่มีสินค้าในหมวดหมู่นี้</p>'; 
         return; 
       }
 
+      // 🚨 ระบบจัดเรียง: ดึง "สินค้าแนะนำ" (Recommend = Yes/ใช่) ขึ้นมาไว้บนสุด
+      filtered.sort((a, b) => {
+          const isRecA = (a.Recommend || a.recommend || a['แนะนำ'] || "").toString().trim().toUpperCase() === "YES" || (a.Recommend || a.recommend || a['แนะนำ'] || "").toString().trim() === "ใช่";
+          const isRecB = (b.Recommend || b.recommend || b['แนะนำ'] || "").toString().trim().toUpperCase() === "YES" || (b.Recommend || b.recommend || b['แนะนำ'] || "").toString().trim() === "ใช่";
+          return (isRecB === isRecA) ? 0 : isRecB ? 1 : -1;
+      });
+
       grid.innerHTML = filtered.map((item, index) => {
         const itemStatus = (item.Status || item.status || "").trim().toUpperCase();
         const isSold = itemStatus === "SOLD" || itemStatus === "SOLD OUT";
+        
+        // เช็คสถานะว่าเป็นสินค้าแนะนำหรือไม่
+        const isRec = (item.Recommend || item.recommend || item['แนะนำ'] || "").toString().trim().toUpperCase() === "YES" || (item.Recommend || item.recommend || item['แนะนำ'] || "").toString().trim() === "ใช่";
         
         let rawImg = item.image || item.Image || item.IMAGE || "";
         let imagesArray = (typeof rawImg === 'string') ? rawImg.split(',') : (Array.isArray(rawImg) ? rawImg : [rawImg]);
@@ -557,15 +570,21 @@
         const safeSize = item.size || item.Size || "-";
 
         return `
-          <div class="bg-white rounded-2xl shadow-sm flex flex-col border border-gray-100 overflow-hidden relative">
-            ${isSold ? '<div class="absolute inset-0 bg-black/40 z-10 flex items-center justify-center"><span class="bg-red-600 text-white font-black px-4 py-1 rounded-full rotate-[-10deg]">SOLD OUT</span></div>' : ''}
-            <img src="${firstImageUrl}" class="w-full h-48 md:h-56 object-cover bg-gray-100" onerror="this.src='https://placehold.co/400x400?text=No+Image'">
-            <div class="p-4 flex flex-col flex-grow">
-              <h3 class="font-bold text-sm md:text-base">${item.name || item.Name || "ไม่มีชื่อสินค้า"}</h3>
+          <div class="bg-white rounded-2xl shadow-sm flex flex-col border border-gray-100 overflow-hidden relative group">
+            
+            ${isSold ? '<div class="absolute inset-0 bg-black/40 z-20 flex items-center justify-center"><span class="bg-red-600 text-white font-black px-4 py-1 rounded-full rotate-[-10deg] shadow-lg">SOLD OUT</span></div>' : ''}
+            
+            ${isRec && !isSold ? '<div class="absolute top-2 left-2 z-10 bg-yellow-400 text-black text-[10px] font-black px-2.5 py-1 rounded-md shadow-sm border border-yellow-500 tracking-wide">🔥 RECOMMENDED</div>' : ''}
+            
+            <div class="overflow-hidden bg-gray-100">
+                <img src="${firstImageUrl}" class="w-full h-48 md:h-56 object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.src='https://placehold.co/400x400?text=No+Image'">
+            </div>
+            <div class="p-4 flex flex-col flex-grow relative z-20 bg-white">
+              <h3 class="font-bold text-sm md:text-base line-clamp-2">${item.name || item.Name || "ไม่มีชื่อสินค้า"}</h3>
               <p class="text-gray-500 text-xs mt-1">Size: ${safeSize}</p>
               <p class="text-black font-black text-lg mt-2 mb-4">฿${itemPrice}</p>
               <button onclick="openProductDetailBySearch('${encodeURIComponent(item.name || item.Name)}')" 
-                      class="mt-auto block w-full text-center py-2 rounded-lg font-bold text-sm bg-black text-white ${isSold ? 'opacity-50 cursor-not-allowed' : ''}" ${isSold ? 'disabled' : ''}>
+                      class="mt-auto block w-full text-center py-2.5 rounded-xl font-bold text-sm bg-black text-white hover:bg-gray-800 transition ${isSold ? 'opacity-50 cursor-not-allowed' : ''}" ${isSold ? 'disabled' : ''}>
                 ${isSold ? 'สินค้าหมด' : 'ดูรายละเอียด / สั่งซื้อ'}
               </button>
             </div>
