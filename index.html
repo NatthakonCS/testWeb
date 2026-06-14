@@ -110,46 +110,54 @@
     </div>
   </div>
 
-  <div id="productDetailModal" class="fixed inset-0 bg-black bg-opacity-80 z-[9940] items-center justify-center p-4 backdrop-blur-sm overflow-y-auto" onclick="if(event.target === this) closeProductDetail()">
-    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-xl relative border border-gray-100 my-8 overflow-hidden">
-      <button onclick="closeProductDetail()" class="absolute top-4 right-5 text-4xl font-bold text-gray-400 hover:text-red-500 transition leading-none z-50 bg-white rounded-full w-10 h-10 flex items-center justify-center shadow">×</button>
+  <div id="productDetailModal" class="fixed inset-0 bg-black/60 z-[9940] items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm transition-opacity overflow-y-auto" onclick="if(event.target === this) closeProductDetail()">
+    
+    <div class="bg-white w-full max-w-4xl relative rounded-t-[2rem] md:rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row animate__animated animate__fadeInUp">
       
-      <div class="w-full bg-gray-50 flex items-center justify-center p-2 border-b border-gray-100">
-          <img id="pd-main-img" src="" class="w-full h-96 object-contain transition-all duration-300">
+      <button onclick="closeProductDetail()" class="absolute top-4 right-4 md:right-5 text-gray-500 hover:text-black transition z-50 bg-white/90 backdrop-blur rounded-full w-10 h-10 flex items-center justify-center shadow-sm border border-gray-100">
+          <i class="fas fa-times text-xl"></i>
+      </button>
+
+      <div class="w-full md:w-1/2 bg-[#f6f6f6] p-6 md:p-10 flex flex-col items-center justify-center relative">
+          <img id="pd-main-img" src="" class="w-full h-72 md:h-96 object-contain mix-blend-multiply transition-transform duration-300 hover:scale-105">
+          
+          <div id="pd-gallery-container" class="thumbnail-gallery flex gap-3 mt-8 overflow-x-auto hide-scroll w-full justify-start md:justify-center px-2"></div>
       </div>
-      
-      <div id="pd-gallery-container" class="thumbnail-gallery flex gap-2 px-6 py-3 overflow-x-auto bg-white border-b hide-scroll"></div>
 
-      <div class="p-6 md:p-8 text-left">
-        <h2 id="pd-name" class="text-2xl font-bold text-black mb-1">ชื่อสินค้า</h2>
-        <p id="pd-price" class="text-2xl font-black text-black mb-4">฿0</p>
-        <div class="grid grid-cols-3 gap-3 mb-6">
-            <div class="bg-gray-50 p-2.5 rounded-2xl border border-gray-100 text-center">
-                <p class="text-[10px] text-gray-500 font-bold uppercase">ไซส์ (Size)</p>
-                <p id="pd-size-lbl" class="text-base font-bold text-black">-</p>
-            </div>
-            <div class="bg-gray-50 p-2.5 rounded-2xl border border-gray-100 text-center">
-                <p class="text-[10px] text-gray-500 font-bold uppercase">รอบอก</p>
-                <p id="pd-chest" class="text-base font-bold text-black">- นิ้ว</p>
-            </div>
-            <div class="bg-gray-50 p-2.5 rounded-2xl border border-gray-100 text-center">
-                <p class="text-[10px] text-gray-500 font-bold uppercase">ความยาว</p>
-                <p id="pd-length" class="text-base font-bold text-black">- นิ้ว</p>
-            </div>
-            <div class="col-span-3 bg-red-50 p-3 rounded-2xl border border-red-100">
-                <p class="text-xs text-red-500 font-bold uppercase">ตำหนิ / สภาพสินค้า</p>
-                <p id="pd-defect" class="text-sm font-medium text-red-700">-</p>
-            </div>
-        </div>
+      <div class="w-full md:w-1/2 p-6 md:p-10 flex flex-col">
+          
+          <div class="mb-6">
+              <h2 id="pd-name" class="text-2xl md:text-3xl font-black uppercase text-gray-900 tracking-tight leading-tight">ชื่อสินค้า</h2>
+              <p id="pd-price" class="text-xl md:text-2xl font-medium text-gray-500 mt-2">฿0</p>
+          </div>
 
-        <div class="flex gap-3">
-            <button id="pd-addCartBtn" class="w-1/2 bg-gray-200 text-black font-bold py-4 rounded-2xl hover:bg-gray-300 transition text-base flex items-center justify-center gap-2">
-                <i class="fas fa-shopping-cart"></i> ใส่ตะกร้า
-            </button>
-            <button id="pd-buyBtn" class="w-1/2 bg-black text-white font-bold py-4 rounded-2xl hover:bg-gray-800 transition shadow-lg text-base flex items-center justify-center gap-2">
-                🛍️ ซื้อทันที
-            </button>
-        </div>
+          <div class="border-t border-b border-gray-200 py-5 space-y-4 mb-8">
+              <div class="flex justify-between items-center">
+                  <span class="text-sm font-medium text-gray-500 uppercase tracking-widest">ไซส์ (Size)</span>
+                  <span id="pd-size-lbl" class="text-base font-bold text-black">-</span>
+              </div>
+              <div class="flex justify-between items-center">
+                  <span class="text-sm font-medium text-gray-500 uppercase tracking-widest">รอบอก (Chest)</span>
+                  <span id="pd-chest" class="text-base font-bold text-black">- นิ้ว</span>
+              </div>
+              <div class="flex justify-between items-center">
+                  <span class="text-sm font-medium text-gray-500 uppercase tracking-widest">ความยาว (Length)</span>
+                  <span id="pd-length" class="text-base font-bold text-black">- นิ้ว</span>
+              </div>
+              <div class="flex flex-col gap-1 pt-2">
+                  <span class="text-xs font-bold text-red-500 uppercase tracking-widest">ตำหนิ / สภาพ (Condition)</span>
+                  <span id="pd-defect" class="text-sm font-medium text-gray-800">-</span>
+              </div>
+          </div>
+
+          <div class="flex flex-col gap-3 mt-auto">
+              <button id="pd-addCartBtn" class="w-full bg-black text-white py-4 rounded-full font-bold text-base md:text-lg hover:bg-gray-800 transition shadow-lg flex items-center justify-center gap-3">
+                  เพิ่มลงตะกร้า
+              </button>
+              <button id="pd-buyBtn" class="w-full bg-white text-black border-2 border-gray-200 py-4 rounded-full font-bold text-base md:text-lg hover:border-black transition flex items-center justify-center gap-3">
+                  ซื้อทันที
+              </button>
+          </div>
       </div>
     </div>
   </div>
@@ -564,6 +572,7 @@
       }).join('');
     }
 
+    // 🚨 ฟังก์ชันแกะรายละเอียดสินค้าที่ฉลาดและปลอดภัยที่สุด ค้นหาตรงๆ จากชื่อวัตถุ และจัดการแกลเลอรีรูปภาพ
     function openProductDetailBySearch(encodedName) {
         const targetName = decodeURIComponent(encodedName);
         const item = allProducts.find(p => (p.name || p.Name) === targetName);
@@ -577,6 +586,7 @@
         document.getElementById('pd-length').innerText = item.Length || item.length || "-";
         document.getElementById('pd-defect').innerText = item.Defect || item.defect || "ไม่มีตำหนิ / สภาพดีเยี่ยม";
 
+        // แยกขบวนลิงก์รูปภาพ (รองรับการใส่หลายรูปคั่นด้วยเครื่องหมายจุลภาค ,)
         let rawImg = item.image || item.Image || item.IMAGE || "";
         let imagesArray = [];
         if (typeof rawImg === 'string') {
@@ -584,33 +594,45 @@
         } else if (Array.isArray(rawImg)) {
             imagesArray = rawImg.map(url => url.toString().replace(/[\[\]"']/g, '').trim()).filter(Boolean);
         }
-        if (imagesArray.length === 0) imagesArray.push('https://placehold.co/400x400?text=No+Image');
+        if (imagesArray.length === 0) imagesArray.push('[https://placehold.co/400x400?text=No+Image](https://placehold.co/400x400?text=No+Image)');
 
+        // ตั้งค่าภาพหลักตัวแรกสุด
         const mainImgView = document.getElementById('pd-main-img');
         mainImgView.src = imagesArray[0];
 
+        // สร้างรายการรูป Thumbnail พรีวิวด้านล่าง (สไตล์ Nike)
         const galleryContainer = document.getElementById('pd-gallery-container');
         galleryContainer.innerHTML = '';
         
+        // ถ้ามีหลายรูป ให้สร้างแกลเลอรีรูปภาพอื่น
         if (imagesArray.length > 1) {
             imagesArray.forEach((imgUrl, idx) => {
                 const thumb = document.createElement('img');
                 thumb.src = imgUrl;
                 thumb.className = `w-14 h-14 object-cover rounded-lg border-2 bg-gray-50 flex-shrink-0 ${idx === 0 ? 'border-black active' : 'border-transparent'}`;
                 thumb.onclick = function() {
+                    // ลบคลาสขอบสีดำออกจากรูปอื่น และเพิ่มในรูปที่ถูกกด
                     document.querySelectorAll('#pd-gallery-container img').forEach(i => i.classList.remove('border-black', 'active'));
                     this.classList.add('border-black', 'active');
+                    // เปลี่ยนรูปหลักด้านบนเป็นรูปที่ถูกกด
                     mainImgView.src = imgUrl;
                 };
                 galleryContainer.appendChild(thumb);
             });
-            galleryContainer.style.display = 'flex';
+            galleryContainer.style.display = 'flex'; // แสดงแกลเลอรี
         } else {
-            galleryContainer.style.display = 'none';
+            galleryContainer.style.display = 'none'; // ซ่อนแกลเลอรีถ้ามีรูปเดียว
         }
 
-        document.getElementById('pd-buyBtn').onclick = () => { closeProductDetail(); openSingleCheckout(item); };
-        document.getElementById('pd-addCartBtn').onclick = () => { addToCartSystem(item); };
+        // เซ็ตปุ่มควบคุมแอคชัน
+        document.getElementById('pd-buyBtn').onclick = () => { 
+            closeProductDetail(); 
+            openSingleCheckout(item); 
+        };
+        document.getElementById('pd-addCartBtn').onclick = () => { 
+            addToCartSystem(item); 
+        };
+
         document.getElementById('productDetailModal').classList.add('active');
     }
 
