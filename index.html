@@ -401,7 +401,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
-    // 🚨 วาง URL เว็บแอป (Web App URL ของ Google Apps Script หลังบ้าน) ตรงนี้ครับฟิว
+    // 🚨 วาง URL เว็บแอป (Web App URL ของ Google Apps Script หลังบ้าน) ตรงนี้ครับ
     const REG_BACKEND_URL = ''; 
 
     const POINT_API_URL = REG_BACKEND_URL || "https://script.google.com/macros/s/AKfycbwp_iMNxd7BvTv0CAoitnvV3DVmliWkGiQhxRoz3nZXI5A894X21hb_rXtXLsvCI9Wq/exec"; 
@@ -410,13 +410,14 @@
     const CHECKOUT_API_URL = "https://script.google.com/macros/s/AKfycbyT00b5c6ng25Br5IEHe2WtCn-BKMwJry_sMU4oMJwVpFfaS_Fg9m2tQcGDU2GgdKI83Q/exec";
 
     let currentUserPhone = ''; 
-    let cart = []; // 🛒 ตัวแปรเก็บสินค้าในตะกร้าชั่วคราว
-    let currentCheckoutItems = []; // รายการที่กำลังกดจ่ายเงิน
+    let isLoggedIn = false; // 🚨 กุญแจล็อก 2 ชั้น: ต้องเป็น true เท่านั้นถึงจะสั่งซื้อได้
+    let cart = []; 
+    let currentCheckoutItems = []; 
 
     function initApp() {
       fetchProducts(); 
       const savedPhone = localStorage.getItem('hc_phone');
-      if (savedPhone) { currentUserPhone = savedPhone; loginSystem(true); }
+      if (savedPhone) { loginSystem(true); } // ดึงเบอร์มาเฉยๆ แต่ยังไม่ให้สถานะล็อกอิน จนกว่าหลังบ้านจะอนุมัติ
       loadCartFromStorage();
       setTimeout(() => { const hash = window.location.hash.substring(1); if (hash && document.getElementById(hash)) navTo(hash); }, 100); 
     }
@@ -428,7 +429,6 @@
     function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
     function switchForm(f) { if(f==='register'){document.getElementById('formLogin').classList.add('hidden'); document.getElementById('formRegister').classList.remove('hidden');}else{document.getElementById('formRegister').classList.add('hidden'); document.getElementById('formLogin').classList.remove('hidden');} }
     
-    // บล็อกระบบสมัครและล็อกอินเหมือนเดิม
     async function registerSystem() {
       const name = document.getElementById('regName').value.trim(); 
       const phone = document.getElementById('regPhone').value.trim(); 
@@ -452,17 +452,24 @@
     }
 
     async function loginSystem(auto = false) {
-      const p = document.getElementById('loginPhone').value || currentUserPhone;
+      const p = document.getElementById('loginPhone').value || localStorage.getItem('hc_phone');
       const pin = document.getElementById('loginPin').value;
+      if(!auto && (!p || !pin)) { Swal.fire('แจ้งเตือน', 'กรุณากรอกเบอร์โทรและรหัส PIN', 'warning'); return; }
+      if(auto && !p) return;
+
       const loginBtn = document.getElementById('loginBtn');
-      if(!p) return;
       if(!auto) { loginBtn.innerText = 'กำลังตรวจสอบ...'; loginBtn.disabled = true; }
       try {
         const res = await fetch(`${POINT_API_URL}?action=login&phone=${p}&pin=${pin}`);
         const d = await res.json();
         if(d.success) {
           if(!auto) { Swal.fire({ icon: 'success', title: 'เข้าสู่ระบบสำเร็จ', text: 'ยินดีต้อนรับเข้าสู่ HighClass ครับ', showConfirmButton: false, timer: 1500 }); }
-          currentUserPhone = d.phone; localStorage.setItem('hc_phone', d.phone);
+          
+          // 🚨 อนุญาตให้ซื้อของได้แล้ว!
+          isLoggedIn = true;
+          currentUserPhone = d.phone; 
+          localStorage.setItem('hc_phone', d.phone);
+          
           closeLoginModal();
           document.getElementById('navLoginBtn').classList.add('hidden'); 
           document.getElementById('navUserBtn').classList.remove('hidden');
@@ -486,7 +493,12 @@
       finally { if(!auto) { loginBtn.innerText = 'เข้าสู่ระบบ'; loginBtn.disabled = false; } }
     }
     
-    function logoutSystem() { localStorage.clear(); window.location.reload(); }
+    function logoutSystem() { 
+      isLoggedIn = false;
+      currentUserPhone = '';
+      localStorage.clear(); 
+      window.location.reload(); 
+    }
 
     let allProducts = []; 
     async function fetchProducts() {
@@ -552,7 +564,6 @@
       }).join('');
     }
 
-    // 🚨 ฟังก์ชันแกะรายละเอียดสินค้าที่ฉลาดและปลอดภัยที่สุด ค้นหาตรงๆ จากชื่อวัตถุ
     function openProductDetailBySearch(encodedName) {
         const targetName = decodeURIComponent(encodedName);
         const item = allProducts.find(p => (p.name || p.Name) === targetName);
@@ -566,7 +577,6 @@
         document.getElementById('pd-length').innerText = item.Length || item.length || "-";
         document.getElementById('pd-defect').innerText = item.Defect || item.defect || "ไม่มีตำหนิ / สภาพดีเยี่ยม";
 
-        // แยกขบวนลิงก์รูปภาพ (รองรับการใส่หลายรูปคั่นด้วยเครื่องหมายจุลภาค ,)
         let rawImg = item.image || item.Image || item.IMAGE || "";
         let imagesArray = [];
         if (typeof rawImg === 'string') {
@@ -576,11 +586,9 @@
         }
         if (imagesArray.length === 0) imagesArray.push('https://placehold.co/400x400?text=No+Image');
 
-        // ตั้งค่าภาพหลักตัวแรกสุด
         const mainImgView = document.getElementById('pd-main-img');
         mainImgView.src = imagesArray[0];
 
-        // สร้างรายการรูป Thumbnail พรีวิวด้านล่าง (สไตล์ Nike)
         const galleryContainer = document.getElementById('pd-gallery-container');
         galleryContainer.innerHTML = '';
         
@@ -601,15 +609,8 @@
             galleryContainer.style.display = 'none';
         }
 
-        // เซ็ตปุ่มควบคุมแอคชัน
-        document.getElementById('pd-buyBtn').onclick = () => { 
-            closeProductDetail(); 
-            openSingleCheckout(item); 
-        };
-        document.getElementById('pd-addCartBtn').onclick = () => { 
-            addToCartSystem(item); 
-        };
-
+        document.getElementById('pd-buyBtn').onclick = () => { closeProductDetail(); openSingleCheckout(item); };
+        document.getElementById('pd-addCartBtn').onclick = () => { addToCartSystem(item); };
         document.getElementById('productDetailModal').classList.add('active');
     }
 
@@ -639,31 +640,22 @@
         }
     }
 
+    // 🚨 เช็ค isLoggedIn ก่อนใส่ตะกร้า
     function addToCartSystem(item) {
-        if(!currentUserPhone) { Swal.fire('แจ้งเตือน', 'กรุณาเข้าสู่ระบบก่อนเพิ่มของลงตะกร้าครับ', 'info'); openLoginModal(); return; }
+        if(!isLoggedIn) { Swal.fire('แจ้งเตือน', 'กรุณาเข้าสู่ระบบก่อนเพิ่มของลงตะกร้าครับ', 'info'); openLoginModal(); return; }
         
-        // เช็คว่าเคยหยิบตัวนี้ใส่ตะกร้าไปหรือยัง (เสื้อวินเทจมีตัวเดียว)
         const isExist = cart.some(c => (c.name || c.Name) === (item.name || item.Name));
-        if(isExist) {
-            Swal.fire('แจ้งเตือน', 'สินค้าชิ้นนี้ถูกเพิ่มลงในตะกร้าเรียบร้อยแล้วครับ', 'warning');
-            return;
-        }
+        if(isExist) { Swal.fire('แจ้งเตือน', 'สินค้าชิ้นนี้ถูกเพิ่มลงในตะกร้าเรียบร้อยแล้วครับ', 'warning'); return; }
 
         cart.push(item);
         saveCartToStorage();
         closeProductDetail();
-
-        Swal.fire({
-            icon: 'success',
-            title: 'เพิ่มลงตะกร้าสำเร็จ',
-            text: `หยิบ ${item.name || item.Name} ใส่ตะกร้าแล้ว ช้อปต่อได้เลย!`,
-            showConfirmButton: false,
-            timer: 1500
-        });
+        Swal.fire({ icon: 'success', title: 'เพิ่มลงตะกร้าสำเร็จ', text: `หยิบ ${item.name || item.Name} ใส่ตะกร้าแล้ว ช้อปต่อได้เลย!`, showConfirmButton: false, timer: 1500 });
     }
 
+    // 🚨 เช็ค isLoggedIn ก่อนเปิดตะกร้า
     function openCartModal() {
-        if(!currentUserPhone) { Swal.fire('แจ้งเตือน', 'กรุณาเข้าสู่ระบบก่อนเช็คตะกร้าครับ', 'info'); openLoginModal(); return; }
+        if(!isLoggedIn) { Swal.fire('แจ้งเตือน', 'กรุณาเข้าสู่ระบบก่อนเช็คตะกร้าครับ', 'info'); openLoginModal(); return; }
         
         const listContainer = document.getElementById('cartItemsList');
         const totalLabel = document.getElementById('cartTotalLabel');
@@ -680,7 +672,6 @@
         cart.forEach((item, index) => {
             const price = parseInt(item.price || item.Price || 0);
             sumPrice += price;
-            
             let rawImg = item.image || item.Image || item.IMAGE || "";
             let firstImg = (typeof rawImg === 'string') ? rawImg.split(',')[0] : (Array.isArray(rawImg) ? rawImg[0] : rawImg);
             firstImg = firstImg.toString().replace(/[\[\]"']/g, '').trim();
@@ -696,7 +687,6 @@
                     <button onclick="removeItemFromCart(${index})" class="text-gray-400 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button>
                 </div>`;
         });
-
         totalLabel.innerText = "฿" + sumPrice;
         document.getElementById('cartModal').classList.add('active');
     }
@@ -706,10 +696,9 @@
     function removeItemFromCart(idx) {
         cart.splice(idx, 1);
         saveCartToStorage();
-        openCartModal(); // โหลดหน้ารายการใหม่
+        openCartModal(); 
     }
 
-    // ฟังก์ชันย้ายของจากตะกร้าไปหน้าจ่ายเงินมัดรวมรวมกัน
     function checkoutCart() {
         if(cart.length === 0) return;
         currentCheckoutItems = [...cart];
@@ -717,9 +706,9 @@
         openFinalCheckoutView();
     }
 
-    // ฟังก์ชันซื้อด่วนแบบตัวเดียวเดี่ยวๆ (ปุ่มซื้อทันที)
+    // 🚨 เช็ค isLoggedIn ก่อนซื้อทันที
     function openSingleCheckout(item) {
-        if(!currentUserPhone) { Swal.fire('แจ้งเตือน', 'กรุณาเข้าสู่ระบบก่อนสั่งซื้อครับ', 'info'); openLoginModal(); return; }
+        if(!isLoggedIn) { Swal.fire('แจ้งเตือน', 'กรุณาเข้าสู่ระบบก่อนสั่งซื้อครับ', 'info'); openLoginModal(); return; }
         currentCheckoutItems = [item];
         openFinalCheckoutView();
     }
@@ -727,6 +716,7 @@
     // ======================================
     // 💰 FINAL CHECKOUT & PROMPTPAY GATEWAY
     // ======================================
+    let curP = 0;
     function openFinalCheckoutView() {
         const summaryContainer = document.getElementById('checkoutProductsSummary');
         summaryContainer.innerHTML = '';
@@ -735,7 +725,6 @@
         currentCheckoutItems.forEach(item => {
             const price = parseInt(item.price || item.Price || 0);
             subTotal += price;
-
             let rawImg = item.image || item.Image || item.IMAGE || "";
             let firstImg = (typeof rawImg === 'string') ? rawImg.split(',')[0] : (Array.isArray(rawImg) ? rawImg[0] : rawImg);
             firstImg = firstImg.toString().replace(/[\[\]"']/g, '').trim();
@@ -750,15 +739,9 @@
                 </div>`;
         });
 
-        // คิดราคาเหมารวมบวกค่าส่งครั้งเดียว 40 บาท
         curP = subTotal + 40;
-
-        // ดันข้อมูลลงโครงสร้างฟอร์มสั่งซื้อ
         document.getElementById('co-cust-phone').value = currentUserPhone;
         document.getElementById('qrcode').innerHTML = `<img src="https://promptpay.io/0845833256/${curP}.png" width="150" style="margin:auto; border-radius:8px;">`;
-        
-        // แก้ไขป้ายกำกับสรุปราคาสุทธิ
-        const totalText = currentCheckoutItems.length > 1 ? `มัดรวมออเดอร์ตะกร้า (${currentCheckoutItems.length} ชิ้น)` : currentCheckoutItems[0].name || currentCheckoutItems[0].Name;
         
         Swal.fire({
             title: 'สรุปราคาคำสั่งซื้อ',
@@ -782,19 +765,12 @@
       const btn = document.getElementById('co-submitBtn');
       btn.innerText = "กำลังอัปโหลดคำสั่งซื้อ..."; btn.disabled = true;
 
-      Swal.fire({
-          title: 'รอตรวจสอบสักครู่...',
-          html: 'ระบบกำลังประมวลผลและอัปโหลดคำสั่งซื้อเข้าสู่ฐานข้อมูล',
-          allowOutsideClick: false,
-          didOpen: () => { Swal.showLoading(); }
-      });
+      Swal.fire({ title: 'รอตรวจสอบสักครู่...', html: 'ระบบกำลังประมวลผลและอัปโหลดคำสั่งซื้อเข้าสู่ฐานข้อมูล', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = async () => {
         const base64 = reader.result.split(',')[1];
-        
-        // ผนึกรายชื่อสินค้าทุกชิ้นเข้าด้วยกันเป็นอาร์เรย์สรุปตัวอักษรเพื่อส่งไปคอลัมน์ชื่อสินค้าของ Google Sheets
         const combinedProductNames = currentCheckoutItems.map(i => (i.name || i.Name).trim()).join(' + ');
 
         const payload = {
@@ -803,82 +779,47 @@
           slipBase64: base64, mimeType: file.type, filename: file.name
         };
         try {
-          const res = await fetch(CHECKOUT_API_URL, { 
-              method: 'POST', 
-              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-              body: JSON.stringify(payload) 
-          });
+          const res = await fetch(CHECKOUT_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
           const d = await res.json();
           if(d.status === "success") { 
-            
-            // สั่งมาร์กไอเทมชิ้นนั้นๆ ว่า SOLD ในกูเกิลชีต (วนลูปทุบเรียงตัวในกรณีที่มีของหลายชิ้น)
             currentCheckoutItems.forEach(item => {
                 const targetTitle = (item.name || item.Name || "").trim();
-                fetch(STOCK_API_URL, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: "markSold", productName: targetTitle }) 
-                }).catch(e => console.log(e));
+                fetch(STOCK_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "markSold", productName: targetTitle }) }).catch(e => console.log(e));
             });
 
-            // 🛒 พลีชีพและล้างเคลียร์ตะกร้าสินค้าออกจากระบบเมื่อจ่ายเงินผ่านฉลุย
             if(currentCheckoutItems.length > 1 || cart.some(c => currentCheckoutItems.some(item => (item.name || item.Name) === (c.name || c.Name)))) {
                 cart = cart.filter(c => !currentCheckoutItems.some(item => (item.name || item.Name) === (c.name || c.Name)));
                 saveCartToStorage();
             }
             
-            Swal.fire({
-                icon: 'success',
-                title: 'สั่งซื้อสินค้าเรียบร้อยแล้ว!',
-                text: 'แอดมินได้รับสลิปเรียบร้อยแล้ว รออัปเดตเลขพัสดุในระบบนะครับ',
-                confirmButtonColor: '#000'
-            });
-
-            closeCheckoutModal(); 
-            navTo('myOrdersSection'); 
-            fetchMyOrders(); 
+            Swal.fire({ icon: 'success', title: 'สั่งซื้อสินค้าเรียบร้อยแล้ว!', text: 'แอดมินได้รับสลิปเรียบร้อยแล้ว รออัปเดตเลขพัสดุในระบบนะครับ', confirmButtonColor: '#000' });
+            closeCheckoutModal(); navTo('myOrdersSection'); fetchMyOrders(); 
           } else { Swal.fire('เกิดข้อผิดพลาด', d.message, 'error'); }
         } catch(e) { Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อระบบหลังบ้านได้ ลองอีกครั้งนะครับ', 'error'); }
         finally { btn.innerText = "ยืนยันการชำระเงิน"; btn.disabled = false; }
       };
     }
 
-    // ฟังก์ชันสถานะตรวจสอบพัสดุและออเดอร์ทำงานเนียนกริบเหมือนเดิม
     async function fetchMyOrders() {
       const list = document.getElementById('myOrdersList');
       list.innerHTML = '<div class="text-center py-10 text-gray-400 font-medium">กำลังโหลดข้อมูล...</div>';
       try {
-        const res = await fetch(CHECKOUT_API_URL, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: "getMyOrders", phone: currentUserPhone }) 
-        });
+        const res = await fetch(CHECKOUT_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "getMyOrders", phone: currentUserPhone }) });
         const d = await res.json();
         if(d.status === "success") {
           if (d.data.length === 0) {
              list.innerHTML = '<div class="bg-white p-10 rounded-3xl border border-gray-100 shadow-sm text-center"><span class="text-5xl block mb-3">🛒</span><p class="text-gray-800 font-bold text-lg">ยังไม่มีประวัติการสั่งซื้อ</p><p class="text-gray-400 text-sm mt-1">ไปเลือกดูสินค้าสวยๆ ในร้านกันเลยครับ!</p></div>';
           } else {
              list.innerHTML = d.data.map(o => {
-               let statusUI = '';
-               let rawStatus = o.status ? o.status.trim() : "";
-               if (rawStatus === "รอตรวจสอบยอดเงิน") {
-                   statusUI = `<span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold flex items-center gap-1"><span class="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></span> รอตรวจสอบยอดเงิน</span>`;
-               } else if (rawStatus === "ชำระเงินสำเร็จ") {
-                   statusUI = `<span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold flex items-center gap-1"><span class="w-2 h-2 bg-green-500 rounded-full"></span> ชำระเงินสำเร็จ</span>`;
-               } else if (rawStatus === "ชำระเงินไม่สำเร็จ") {
-                   statusUI = `<span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold flex items-center gap-1"><span class="w-2 h-2 bg-red-500 rounded-full"></span> ชำระเงินไม่สำเร็จ</span>`;
-               } else { statusUI = `<span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold">${rawStatus}</span>`; }
-
+               let statusUI = ''; let rawStatus = o.status ? o.status.trim() : "";
+               if (rawStatus === "รอตรวจสอบยอดเงิน") statusUI = `<span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold flex items-center gap-1"><span class="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></span> รอตรวจสอบยอดเงิน</span>`;
+               else if (rawStatus === "ชำระเงินสำเร็จ") statusUI = `<span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold flex items-center gap-1"><span class="w-2 h-2 bg-green-500 rounded-full"></span> ชำระเงินสำเร็จ</span>`;
+               else if (rawStatus === "ชำระเงินไม่สำเร็จ") statusUI = `<span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold flex items-center gap-1"><span class="w-2 h-2 bg-red-500 rounded-full"></span> ชำระเงินไม่สำเร็จ</span>`;
+               else statusUI = `<span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold">${rawStatus}</span>`;
                return `
                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-2 hover:shadow-md transition">
-                  <div class="flex justify-between items-start mb-1">
-                     <div class="font-bold text-gray-800 text-sm md:text-base line-clamp-2 pr-2">${o.productName || "สั่งซื้อสินค้า"}</div>
-                     ${statusUI}
-                  </div>
-                  <div class="flex justify-between items-end">
-                      <div class="text-xs text-gray-400">วันที่: ${new Date(o.date).toLocaleString('th-TH')}</div>
-                      <div class="text-black font-black text-xl">฿${o.price}</div>
-                  </div>
+                  <div class="flex justify-between items-start mb-1"><div class="font-bold text-gray-800 text-sm md:text-base line-clamp-2 pr-2">${o.productName || "สั่งซื้อสินค้า"}</div>${statusUI}</div>
+                  <div class="flex justify-between items-end"><div class="text-xs text-gray-400">วันที่: ${new Date(o.date).toLocaleString('th-TH')}</div><div class="text-black font-black text-xl">฿${o.price}</div></div>
                </div>`;
              }).join('');
           }
@@ -887,73 +828,40 @@
     }
 
     function toggleTrackMode() {
-      const custBox = document.getElementById('trackCustomerBox');
-      const adminBox = document.getElementById('trackAdminBox');
-      const btn = document.getElementById('modeTrackBtn');
-      if(custBox.classList.contains('hidden')) {
-        custBox.classList.remove('hidden'); adminBox.classList.add('hidden');
-        btn.innerText = 'Admin Login'; btn.classList.replace('bg-black', 'bg-gray-200'); btn.classList.replace('text-white', 'text-gray-700');
-      } else {
-        custBox.classList.add('hidden'); adminBox.classList.remove('hidden');
-        btn.innerText = 'กลับไปหน้าค้นหา'; btn.classList.replace('bg-gray-200', 'bg-black'); btn.classList.replace('text-gray-700', 'text-white');
-      }
+      const custBox = document.getElementById('trackCustomerBox'); const adminBox = document.getElementById('trackAdminBox'); const btn = document.getElementById('modeTrackBtn');
+      if(custBox.classList.contains('hidden')) { custBox.classList.remove('hidden'); adminBox.classList.add('hidden'); btn.innerText = 'Admin Login'; btn.classList.replace('bg-black', 'bg-gray-200'); btn.classList.replace('text-white', 'text-gray-700'); } 
+      else { custBox.classList.add('hidden'); adminBox.classList.remove('hidden'); btn.innerText = 'กลับไปหน้าค้นหา'; btn.classList.replace('bg-gray-200', 'bg-black'); btn.classList.replace('text-gray-700', 'text-white'); }
     }
 
     async function searchParcel() {
-      const input = document.getElementById('trackInput').value.trim();
-      const resultDiv = document.getElementById('trackResult');
-      const btn = document.getElementById('trackBtn');
+      const input = document.getElementById('trackInput').value.trim(); const resultDiv = document.getElementById('trackResult'); const btn = document.getElementById('trackBtn');
       if (!input) { Swal.fire('แจ้งเตือน', 'กรุณาใส่ชื่อเพื่อค้นหาครับ', 'warning'); return; }
-      btn.innerText = 'กำลังค้นหา...'; btn.disabled = true;
-      resultDiv.classList.remove('hidden');
-      resultDiv.innerHTML = '<div class="text-center py-6 text-gray-500 font-medium animate-pulse">กำลังค้นหาข้อมูลพัสดุ...</div>';
+      btn.innerText = 'กำลังค้นหา...'; btn.disabled = true; resultDiv.classList.remove('hidden'); resultDiv.innerHTML = '<div class="text-center py-6 text-gray-500 font-medium animate-pulse">กำลังค้นหาข้อมูลพัสดุ...</div>';
       try {
-        const response = await fetch(`${TRACKING_API_URL}?action=search&name=${encodeURIComponent(input)}`);
-        const data = await response.json();
+        const response = await fetch(`${TRACKING_API_URL}?action=search&name=${encodeURIComponent(input)}`); const data = await response.json();
         if (data.status === 'success' && data.data.length > 0) {
           resultDiv.innerHTML = data.data.map(item => `
             <div class="bg-gray-50 p-6 rounded-2xl border border-gray-200 text-left relative overflow-hidden flex flex-col gap-4">
-              <div class="flex justify-between items-start">
-                <div>
-                  <div class="flex items-center gap-3 mb-1">
-                    <span class="font-bold text-black text-xl">${item.name}</span>
-                    <span class="text-xs px-3 py-1 bg-green-100 text-green-700 rounded-full font-bold shadow-sm">จัดส่งแล้ว</span>
-                  </div>
-                  <div class="text-sm text-gray-500">สินค้า: <span class="font-bold text-gray-800">${item.product}</span></div>
-                </div>
-              </div>
-              <div class="bg-white p-4 rounded-xl border border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-2">
-                <div>
-                  <div class="text-xs text-gray-500 mb-1">เลขพัสดุ</div>
-                  <div class="font-black text-black text-xl tracking-wider">${item.tracking}</div>
-                </div>
-                <button onclick="openTimelinePopup('${item.tracking}')" class="bg-black hover:bg-gray-800 text-white px-5 py-3 rounded-xl text-sm font-bold transition shadow-sm border border-black flex items-center justify-center gap-2 w-full sm:w-auto">🚀 เช็คสถานะพัสดุ</button>
-              </div>
-            </div>
-          `).join('');
+              <div class="flex justify-between items-start"><div><div class="flex items-center gap-3 mb-1"><span class="font-bold text-black text-xl">${item.name}</span><span class="text-xs px-3 py-1 bg-green-100 text-green-700 rounded-full font-bold shadow-sm">จัดส่งแล้ว</span></div><div class="text-sm text-gray-500">สินค้า: <span class="font-bold text-gray-800">${item.product}</span></div></div></div>
+              <div class="bg-white p-4 rounded-xl border border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-2"><div><div class="text-xs text-gray-500 mb-1">เลขพัสดุ</div><div class="font-black text-black text-xl tracking-wider">${item.tracking}</div></div><button onclick="openTimelinePopup('${item.tracking}')" class="bg-black hover:bg-gray-800 text-white px-5 py-3 rounded-xl text-sm font-bold transition shadow-sm border border-black flex items-center justify-center gap-2 w-full sm:w-auto">🚀 เช็คสถานะพัสดุ</button></div>
+              <div class="text-center"><span class="text-[10px] text-gray-400 uppercase tracking-widest">Update: ${item.date || new Date().toLocaleDateString('th-TH')}</span></div>
+            </div>`).join('');
         } else { resultDiv.innerHTML = '<div class="text-center py-6 bg-red-50 text-red-500 rounded-2xl border border-red-100 font-bold">❌ ไม่พบข้อมูลพัสดุ</div>'; }
       } catch (error) { resultDiv.innerHTML = '<div class="text-center py-4 text-red-500 font-bold">เกิดข้อผิดพลาดในการดึงข้อมูล</div>'; }
       btn.innerText = 'ค้นหา'; btn.disabled = false;
     }
 
     function openTimelinePopup(trackingNumber) {
-        let url = ''; let tracking = trackingNumber.trim().toUpperCase(); 
-        const ua = navigator.userAgent || navigator.vendor || window.opera;
-        const isInApp = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1) || (ua.indexOf("Line") > -1);
+        let url = ''; let tracking = trackingNumber.trim().toUpperCase(); const ua = navigator.userAgent || navigator.vendor || window.opera; const isInApp = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1) || (ua.indexOf("Line") > -1);
         const thaiPostRegex = /^[A-Z]{2}\d{9}[A-Z]{2}$/;
         if (thaiPostRegex.test(tracking)) {
             const el = document.createElement('textarea'); el.value = tracking; document.body.appendChild(el); el.select();
-            try {
-                document.execCommand('copy');
-                Swal.fire({ icon: 'success', title: 'คัดลอกเลขพัสดุเรียบร้อย!', text: `เลขพัสดุ: ${tracking}\nระบบกำลังพาส่งหน้าเช็คไปรษณีย์ไทย สามารถวางเพื่อค้นหาได้เลยครับ`, confirmButtonColor: '#000' });
-            } catch (e) { Swal.fire('แจ้งเตือน', 'กรุณาคัดลอกเลขพัสดุนี้: ' + tracking, 'info'); }
-            document.body.removeChild(el); url = 'https://track.thailandpost.co.th/';
-            setTimeout(() => { if (isInApp) { window.location.href = url; } else { window.open(url, '_blank'); } }, 2500);
-            return; 
+            try { document.execCommand('copy'); Swal.fire({ icon: 'success', title: 'คัดลอกเลขพัสดุเรียบร้อย!', text: `เลขพัสดุ: ${tracking}\nระบบกำลังพาส่งหน้าเช็คไปรษณีย์ไทย สามารถวางเพื่อค้นหาได้เลยครับ`, confirmButtonColor: '#000' }); } 
+            catch (e) { Swal.fire('แจ้งเตือน', 'กรุณาคัดลอกเลขพัสดุนี้: ' + tracking, 'info'); }
+            document.body.removeChild(el); url = 'https://track.thailandpost.co.th/'; setTimeout(() => { if (isInApp) { window.location.href = url; } else { window.open(url, '_blank'); } }, 2500); return; 
         }
         url = 'https://www.flashexpress.co.th/tracking/?se=' + tracking;
-        if (isInApp) { window.location.href = url; } 
-        else { const width = 420; const height = 700; const left = (window.screen.width - width) / 2; const top = (window.screen.height - height) / 2; window.open(url, 'TrackingTimeline', `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`); }
+        if (isInApp) { window.location.href = url; } else { const width = 420; const height = 700; const left = (window.screen.width - width) / 2; const top = (window.screen.height - height) / 2; window.open(url, 'TrackingTimeline', `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`); }
     }
   </script>
 </body>
